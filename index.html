@@ -50,28 +50,24 @@
       <h1 class="ui dividing header">Grid Content</h1>
 
       <h3 class="first">Explore by Neighborhood</h3>
-      <label>Select Neighborhoods</label>
-      <div >
-        
+       <label>Select Dataset</label>
+      <div id='datasets'>
 
-        <select name="skills" id = 'neighborhoodDropdown' multiple="" class="ui fluid search dropdown">
-          <option value="">NYC</option>
-          <option value="1">Change Methodology</option>
-          <option value="2">Cognitive Computing & AI</option>
-          <option value="3">Connectivity & Collaboration</option>
-          <option value="4">Culture in Action</option>
-          <option value="5">Future of Work</option>
-          <option value="6">HR Transformation</option>
-          <option value="7">Human-centered Design</option>
-          <option value="8">Machine Learning & AI</option>
-          <option value="9">Operational Effectiveness</option>
-          <option value="10">Operational Excellence</option>
-          <option value="11">Organizational Change</option>
-
+        <select  id = 'datasetDropdown' multiple="" class="ui search fluid dropdown">
+          <option value="">Order to Repair or Vacate</option>
         </select>
       </div>
       
-      
+
+
+      <label>Select Neighborhoods</label>
+      <div id='neighborhoods'>
+
+        <select id = 'neighborhoodDropdown' multiple="" class="ui fluid search dropdown">
+          <option value="">NYC</option>
+        </select>
+      </div>
+     
       
 
 
@@ -79,7 +75,56 @@
 
       <div class="ui two  divided grid">
         <div class="row">
-          <div class="eight wide column"> The table goes here</div>
+          <div class="eight wide column"> The table goes here
+          <table class="ui selectable celled table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Region 1</th>
+              <th>Region 2</th>
+              <th>Region 3</th>
+            </tr>
+          </thead>
+          <tbody id='table1'>
+            <tr>
+              <td>John</td>
+              <td>No Action</td>
+              <td>None</td>
+              <td>None</td>
+            </tr>
+            <tr>
+              <td>Jamie</td>
+              <td>Approved</td>
+              <td>Requires call</td>
+              <td>Requires call</td>
+            </tr>
+            <tr>
+              <td>Jill</td>
+              <td>Denied</td>
+              <td>None</td>
+              <td>Requires call</td>
+            </tr>
+            <tr class="warning">
+              <td>John</td>
+              <td>No Action</td>
+              <td>None</td>
+              <td>Requires call</td>
+            </tr>
+            <tr>
+              <td>Jamie</td>
+              <td class="positive">Approved</td>
+              <td class="warning">Requires call</td>
+              <td>Requires call</td>
+            </tr>
+            <tr>
+              <td>Jill</td>
+              <td class="negative">Denied</td>
+              <td>None</td>
+              <td>Requires call</td>
+            </tr>
+          </tbody>
+        </table>
+          </div>
           <div class="eight wide column"> The visualization goes here</div>
         </div>
       </div>
@@ -142,13 +187,7 @@ img + img {
 .ui.aligned .column:after {
   display: none !important;
 }
-.grid .column:not(.row):not(.grid):after {
-  background-color: rgba(86, 61, 124, .15);
-  box-shadow: 0px 0px 0px 1px rgba(86, 61, 124, 0.2) inset;
-  content: "";
-  display: block;
-  min-height: 50px;
-}
+
 @media only screen and (max-width: 768px) {
   .stackable.grid:before {
     width: 100%;
