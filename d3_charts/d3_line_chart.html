@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+body { font: 12px Arial;}
+
+path {
+    stroke: #ccc;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+#legendContainer{
+	position:absolute;
+	top:60px;
+	left:10px;
+	overflow: auto;
+	height:490px;
+	width:110px;
+}
+#legend{
+	width:90px;
+	height:200px;
+}
+.legend {
+    font-size: 12px;
+    font-weight: normal;
+    text-anchor: left;
+}
+.legendcheckbox{
+	cursor: pointer;
+}
+#showAll{
+	position:absolute;
+	top:600px;
+	left:880px;
+}
+#clearAll{
+	position:absolute;
+	top:600px;
+	left:950px;
+}
+input{
+	border-radius:5px;
+	padding:5px 10px;
+	background:#999;
+	border:0;
+	color:#fff;
+}
+#inds{
+	position:absolute;
+	top:10px;
+	left:10px;
+}
+</style>
+<body>
+
+<!-- load the d3.js library -->
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<select id="inds">
+    <!-- populated by types -->
+
+</select>
+<div id="legendContainer" class="legendContainer">
+	<svg id="legend"></svg>
+</div>
+<div id="showAll">
+	<input name="showAllButton"
+	 type="button"
+	 value="Show All"
+	 onclick="showAll()" />
+</div>
+<div id="clearAll">
+	<input name="clearAllButton"
+	 type="button"
+	 value="Clear All"
+	 onclick="clearAll()" />
+</div>
+<script>
+
+function filterJSON(json, key, value) {
+  var result = [];
+  json.forEach(function(val,idx,arr){
+    if(val[key] == value){
+
+      result.push(val)
+    }
+  })
+  console.log(result);
+  return result;
+}
+
+// Set the dimensions of the canvas / graph
+var margin = {top: 50, right: 20, bottom: 30, left: 160},
+    width = 1000 - margin.left - margin.right,
+    height = 550 - margin.top - margin.bottom;
+
+// Create a parseDate function
+var parseDate = d3.time.format("%Y").parse;
+
+// Trying to fix missing year data by adding in 0s, every year from 2010 to 2018
+
+var date_range = d3.time.years(parseDate('2010'),parseDate('2018'), 1);
+
+
+// Set the ranges
+var x = d3.time.scale().range([0, width]);
+var y = d3.scale.linear().range([height, 0]);
+
+// Define the axes
+var xAxis = d3.svg.axis().scale(x)
+    .orient("bottom").ticks(5)
+    .tickFormat(d3.time.format("%Y"))
+
+var yAxis = d3.svg.axis().scale(y)
+    .orient("left").ticks(5);
+
+// Define the line
+var ntaline = d3.svg.line()
+		.interpolate("cardinal")
+    .x(function(d) { return x(d.year); })
+    .y(function(d) { return y(d.count); });
+
+// Adds the svg canvas
+var svg = d3.select("body")
+    .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+var data;
+
+var complaintTypes = {};
+
+// Get the data
+d3.json(`https://wxu-carto.carto.com/api/v2/sql?q=
+  SELECT%20DATE_PART(%27year%27,%20created_date)%20as%20year,
+  %20complaint_type,%20ntacode,%20count(*)%20FROM%20%22wxu-carto%22.threeoneone_2010_2018
+  WHERE ntacode in ('MN27', 'MN11')
+  %20group%20by%20DATE_PART(%27year%27,%20created_date),%20complaint_type,%20ntacode&
+  api_key=c5yeQOubTACo6uxKipiq8A`, // READ ONLY SQL API KEY
+function(error, json) {
+  json = json.rows;
+  console.log(json);
+
+  // debugger
+  json.forEach(function(d, i) {
+		d.count = +d.count;
+    d.year = parseDate(String(d.year));
+    console.log(d.complaint_type);
+    if (!complaintTypes[d.complaint_type]){
+      var dropdown = document.getElementById('inds');
+      dropdown.innerHTML += `<option value="${d.complaint_type}">${d.complaint_type}</option>`;
+      complaintTypes[d.complaint_type] = true;
+    }
+  });
+
+  // Set the domain
+  x.domain(d3.extent(json, function(d) { return d.year; }));
+  y.domain([0, d3.max(json, function(d) { return d.count; })]);
+
+	d3.select('#inds')
+			.on("change", function () {
+				var sect = document.getElementById("inds");
+				var section = sect.options[sect.selectedIndex].value;
+        console.log(section)
+				data = filterJSON(json, 'complaint_type', section);
+
+
+	      //debugger
+
+		    data.forEach(function(d) {
+    			d.count = +d.count;
+    			// d.year = parseDate(String(d.year));
+    			d.active = true;
+    		});
+
+
+		    //debugger
+				updateGraph(data);
+
+
+				jQuery('h1.page-header').html(section);
+			});
+
+	// generate initial graph
+	data = filterJSON(json, 'complaint_type', 'Blocked Driveway');
+	updateGraph(data);
+
+});
+
+var color = d3.scale.ordinal().range(["#48A36D",  "#0096ff", "#ff007e"]);
+
+function updateGraph(data) {
+
+
+    // Scale the range of the data
+    x.domain(d3.extent(data, function(d) { return d.year; }));
+    y.domain([0, d3.max(data, function(d) { return d.count; })]);
+
+
+    // Nest the entries by nta
+    dataNest = d3.nest()
+        .key(function(d) {return d.ntacode;})
+        .entries(data);
+
+
+ 		var result = dataNest.filter(function(val,idx, arr){
+				  return $("." + val.key).attr("fill") != "#ccc"
+				  // matching the data with selector status
+				})
+
+
+ 		var nta = svg.selectAll(".line")
+      .data(result, function(d){return d.key});
+
+		nta.enter().append("path")
+			.attr("class", "line");
+
+		nta.transition()
+			.style("stroke", function(d,i) { return d.color = color(d.key); })
+			.attr("id", function(d){ return 'tag'+d.key.replace(/\s+/g, '');}) // assign ID
+			.attr("d", function(d){
+
+				return ntaline(d.values)
+			});
+
+		nta.exit().remove();
+
+		var legend = d3.select("#legend")
+			.selectAll("text")
+			.data(dataNest, function(d){return d.key});
+
+		//checkboxes
+		legend.enter().append("rect")
+		  .attr("width", 10)
+		  .attr("height", 10)
+		  .attr("x", 0)
+		  .attr("y", function (d, i) { return 0 +i*15; })  // spacing
+		  .attr("fill",function(d) {
+		    return color(d.key);
+
+		  })
+		  .attr("class", function(d,i){return "legendcheckbox " + d.key})
+			.on("click", function(d){
+			  d.active = !d.active;
+
+			  d3.select(this).attr("fill", function(d){
+			    if(d3.select(this).attr("fill")  == "#ccc"){
+			      return color(d.key);
+			    }else {
+			      return "#ccc";
+			    }
+			  })
+
+
+			 var result = dataNest.filter(function(val,idx, arr){
+         return $("." + val.key).attr("fill") != "#ccc"
+       // matching the data with selector status
+      })
+
+       // Hide or show the lines based on the ID
+       svg.selectAll(".line").data(result, function(d){return d.key})
+         .enter()
+         .append("path")
+         .attr("class", "line")
+         .style("stroke", function(d,i) { return d.color = color(d.key); })
+        .attr("d", function(d){
+                return ntaline(d.values);
+         });
+
+      svg.selectAll(".line").data(result, function(d){return d.key}).exit().remove()
+
+			})
+
+    // Add the Legend text
+    legend.enter().append("text")
+      .attr("x", 15)
+      .attr("y", function(d,i){return 10 +i*15;})
+      .attr("class", "legend");
+
+		legend.transition()
+      .style("fill", "#777" )
+      .text(function(d){return d.key;});
+
+		legend.exit().remove();
+
+		svg.selectAll(".axis").remove();
+
+    // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+};
+
+function clearAll(){
+  d3.selectAll(".line")
+	.transition().duration(100)
+			.attr("d", function(d){
+        return null;
+      });
+  d3.select("#legend").selectAll("rect")
+  .transition().duration(100)
+      .attr("fill", "#ccc");
+};
+
+function showAll(){
+  d3.selectAll(".line")
+	.transition().duration(100)
+			.attr("d", function(d){
+        return ntaline(d.values);
+      });
+  d3.select("#legend").selectAll("rect")
+  .attr("fill",function(d) {
+    if (d.active == true){
+       return color(d.key);
+     }
+   })
+};
+
+</script>
+</body>
