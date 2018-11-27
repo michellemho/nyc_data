@@ -96,7 +96,29 @@ function filterJSON(json, key, value) {
     }
   })
   console.log(result);
+
   return result;
+}
+
+function getZeroes(data, section) {
+  var result = [];
+  var m = d3.nest().key(function(d) { return d.ntacode }).entries(data);
+  m.forEach(function(nta_data, idx){
+    newArray = fillZero(nta_data.values, m[idx].key, section)
+    result.push(newArray)
+  })
+  return result.flat()
+}
+
+function fillZero(nta_data, ntacode, section){
+
+  var m = d3.map(nta_data, function(d) { return d.year });
+  var newData = date_range.map(function(bucket) {
+      return m.get(bucket) || {year: bucket, count: 0, complaint_type: section, ntacode: ntacode};
+  });
+  // console.log('NEW DATA!', newData);
+  return newData;
+
 }
 
 // Set the dimensions of the canvas / graph
@@ -107,9 +129,9 @@ var margin = {top: 50, right: 20, bottom: 30, left: 160},
 // Create a parseDate function
 var parseDate = d3.time.format("%Y").parse;
 
-// Trying to fix missing year data by adding in 0s, every year from 2010 to 2018
-
-var date_range = d3.time.years(parseDate('2010'),parseDate('2018'), 1);
+// Trying to fix missing year data by adding in 0s, every year from 2010 to 2018...
+// This might be needed later
+var date_range = d3.time.years(parseDate('2010'),parseDate('2019'), 1);
 
 
 // Set the ranges
@@ -126,7 +148,7 @@ var yAxis = d3.svg.axis().scale(y)
 
 // Define the line
 var ntaline = d3.svg.line()
-		.interpolate("cardinal")
+		// .interpolate("cardinal")
     .x(function(d) { return x(d.year); })
     .y(function(d) { return y(d.count); });
 
@@ -139,7 +161,7 @@ var svg = d3.select("body")
         .attr("transform",
               "translate(" + margin.left + "," + margin.top + ")");
 var data;
-
+var og_data;
 var complaintTypes = {};
 
 // Get the data
@@ -174,13 +196,16 @@ function(error, json) {
 				var sect = document.getElementById("inds");
 				var section = sect.options[sect.selectedIndex].value;
         console.log(section)
+        og_data = json
 				data = filterJSON(json, 'complaint_type', section);
-
+        data = getZeroes(data, section)
 
 	      //debugger
 
 		    data.forEach(function(d) {
+          // Make sure it's a number
     			d.count = +d.count;
+          // Below might not be necessary, depends on data date format
     			// d.year = parseDate(String(d.year));
     			d.active = true;
     		});
@@ -195,6 +220,8 @@ function(error, json) {
 
 	// generate initial graph
 	data = filterJSON(json, 'complaint_type', 'Blocked Driveway');
+  data = getZeroes(data, 'Blocked Driveway');
+
 	updateGraph(data);
 
 });
@@ -212,10 +239,17 @@ function updateGraph(data) {
     // Nest the entries by nta
     dataNest = d3.nest()
         .key(function(d) {return d.ntacode;})
+        // .rollup(function(v){return fillZero(v.values, function(d){return d.complaint_type})})
         .entries(data);
 
+    dataNest.forEach(function(array){
+      curr_ntacode = array.key
+      curr_type  = array.values[0].key
+      fillZero(array, curr_ntacode, curr_type)
+    })
 
- 		var result = dataNest.filter(function(val,idx, arr){
+
+ 		result = dataNest.filter(function(val,idx, arr){
 				  return $("." + val.key).attr("fill") != "#ccc"
 				  // matching the data with selector status
 				})
