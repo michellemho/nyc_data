@@ -4,3 +4,4 @@ __pycache__
 taxi/taxi_zones/
 health_inspections/DOHMH_New_York_City_Restaurant_Inspection_Results.csv
 nta_data/demo_2016acs5yr_nta.xlsx
+website/node_modules/*
