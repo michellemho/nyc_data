@@ -148,7 +148,7 @@ var yAxis = d3.svg.axis().scale(y)
 
 // Define the line
 var ntaline = d3.svg.line()
-		// .interpolate("cardinal")
+		.interpolate("monotone")
     .x(function(d) { return x(d.year); })
     .y(function(d) { return y(d.count); });
 
@@ -161,8 +161,6 @@ var svg = d3.select("body")
         .attr("transform",
               "translate(" + margin.left + "," + margin.top + ")");
 var data;
-var og_data;
-var complaintTypes = {};
 
 // Get the data
 d3.json(`https://wxu-carto.carto.com/api/v2/sql?q=
@@ -241,13 +239,6 @@ function updateGraph(data) {
         .key(function(d) {return d.ntacode;})
         // .rollup(function(v){return fillZero(v.values, function(d){return d.complaint_type})})
         .entries(data);
-
-    dataNest.forEach(function(array){
-      curr_ntacode = array.key
-      curr_type  = array.values[0].key
-      fillZero(array, curr_ntacode, curr_type)
-    })
-
 
  		result = dataNest.filter(function(val,idx, arr){
 				  return $("." + val.key).attr("fill") != "#ccc"
