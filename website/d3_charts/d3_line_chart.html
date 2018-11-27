@@ -87,6 +87,7 @@ input{
 </div>
 <script>
 
+// function for use later to filter JSON by type
 function filterJSON(json, key, value) {
   var result = [];
   json.forEach(function(val,idx,arr){
@@ -96,10 +97,10 @@ function filterJSON(json, key, value) {
     }
   })
   console.log(result);
-
   return result;
 }
 
+// function to nest filterJSON data, feed into fillZero, and return unnested version (flat)
 function getZeroes(data, section) {
   var result = [];
   var m = d3.nest().key(function(d) { return d.ntacode }).entries(data);
@@ -110,15 +111,14 @@ function getZeroes(data, section) {
   return result.flat()
 }
 
+// function that maps a nta's data array by year, in order to fill missing years with 0
 function fillZero(nta_data, ntacode, section){
-
   var m = d3.map(nta_data, function(d) { return d.year });
   var newData = date_range.map(function(bucket) {
       return m.get(bucket) || {year: bucket, count: 0, complaint_type: section, ntacode: ntacode};
   });
   // console.log('NEW DATA!', newData);
   return newData;
-
 }
 
 // Set the dimensions of the canvas / graph
@@ -126,7 +126,7 @@ var margin = {top: 50, right: 20, bottom: 30, left: 160},
     width = 1000 - margin.left - margin.right,
     height = 550 - margin.top - margin.bottom;
 
-// Create a parseDate function
+// Create a parseDate function that can take in a string like '2011'
 var parseDate = d3.time.format("%Y").parse;
 
 // Trying to fix missing year data by adding in 0s, every year from 2010 to 2018...
@@ -163,7 +163,7 @@ var svg = d3.select("body")
 var data;
 var complaintTypes = {};
 
-// Get the data
+// Get the initial data
 d3.json(`https://wxu-carto.carto.com/api/v2/sql?q=
   SELECT%20DATE_PART(%27year%27,%20created_date)%20as%20year,
   %20complaint_type,%20ntacode,%20count(*)%20FROM%20%22wxu-carto%22.threeoneone_2010_2018
@@ -179,6 +179,7 @@ function(error, json) {
 		d.count = +d.count;
     d.year = parseDate(String(d.year));
     console.log(d.complaint_type);
+    // Adding in dropdown options
     if (!complaintTypes[d.complaint_type]){
       var dropdown = document.getElementById('inds');
       dropdown.innerHTML += `<option value="${d.complaint_type}">${d.complaint_type}</option>`;
@@ -186,51 +187,44 @@ function(error, json) {
     }
   });
 
-  // Set the domain
-  x.domain(d3.extent(json, function(d) { return d.year; }));
-  y.domain([0, d3.max(json, function(d) { return d.count; })]);
-
+// Update data filter when dropdown menu option changes
 	d3.select('#inds')
 			.on("change", function () {
 				var sect = document.getElementById("inds");
 				var section = sect.options[sect.selectedIndex].value;
         console.log(section)
-        og_data = json
+        // json variable is ALWAYS the same, it's the initial SQL query
 				data = filterJSON(json, 'complaint_type', section);
         data = getZeroes(data, section)
 
 	      //debugger
-
 		    data.forEach(function(d) {
-          // Make sure it's a number
+          // Make sure 'count' is a number
     			d.count = +d.count;
-          // Below might not be necessary, depends on data date format
+          // Below code might not be necessary, depends on data date format
     			// d.year = parseDate(String(d.year));
     			d.active = true;
     		});
 
-
 		    //debugger
 				updateGraph(data);
-
-
-				jQuery('h1.page-header').html(section);
 			});
 
 	// generate initial graph
 	data = filterJSON(json, 'complaint_type', 'Blocked Driveway');
   data = getZeroes(data, 'Blocked Driveway');
 
+  // data here is filtered and filled zero data
 	updateGraph(data);
 
 });
 
+// color object
 var color = d3.scale.ordinal().range(["#48A36D",  "#0096ff", "#ff007e"]);
 
 function updateGraph(data) {
-
-
     // Scale the range of the data
+    // TODO fix to extend of ALL data, for example 2000 - 2018 or 2012 - 2018
     x.domain(d3.extent(data, function(d) { return d.year; }));
     y.domain([0, d3.max(data, function(d) { return d.count; })]);
 
@@ -246,7 +240,7 @@ function updateGraph(data) {
 				  // matching the data with selector status
 				})
 
-
+    // .line here because there may already be lines there, we need to update the data
  		var nta = svg.selectAll(".line")
       .data(result, function(d){return d.key});
 
