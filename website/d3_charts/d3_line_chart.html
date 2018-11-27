@@ -161,6 +161,7 @@ var svg = d3.select("body")
         .attr("transform",
               "translate(" + margin.left + "," + margin.top + ")");
 var data;
+var complaintTypes = {};
 
 // Get the data
 d3.json(`https://wxu-carto.carto.com/api/v2/sql?q=
