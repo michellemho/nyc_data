@@ -145,9 +145,9 @@ var complaintTypes = {};
 d3.json(`https://wxu-carto.carto.com/api/v2/sql?q=
   SELECT%20DATE_PART(%27year%27,%20created_date)%20as%20year,
   %20complaint_type,%20ntacode,%20count(*)%20FROM%20%22wxu-carto%22.threeoneone_2010_2018
-  WHERE ntacode in ('MN27', 'MN11')
-  %20group%20by%20DATE_PART(%27year%27,%20created_date),%20complaint_type,%20ntacode&
-  api_key=c5yeQOubTACo6uxKipiq8A`, // READ ONLY SQL API KEY
+  WHERE ntacode in ('MN27', 'MN11', 'MN20')
+  %20group%20by%20DATE_PART(%27year%27,%20created_date),%20complaint_type,%20ntacode&api_key=c5yeQOubTACo6uxKipiq8A`,
+  //READ ONLY SQL API KEY
 function(error, json) {
   json = json.rows;
   console.log(json);
