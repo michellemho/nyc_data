@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<head>
+
+    <meta charset="utf-8">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script type="text/javascript" src="acs_var_dictionary.js"></script> 
+    <script
+    src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <style>
+
+        .bar {
+        fill: steelblue;
+        }
+    
+        .bar:hover {
+        fill: brown;
+        }
+    
+        .label {
+        fill: black;
+        font: 10px sans-serif;
+        }
+    
+        .y path, .y stroke, .y line {
+        display: none;
+        }
+    
+        .x path, .x stroke {
+        display: none;
+        }
+    
+    </style>
+</head>
+
+<body>
+    <select id="inds">
+            <!-- populate dropdown by variables -->    
+    </select>
+    <div id='chart-container'></div>
+</body>
+
+<script>
+    var margin = {
+        top: 20,
+        right: 20,
+        bottom: 30,
+        left: 40
+      };
+    var width = 960 - margin.left - margin.right;
+    var height = 500 - margin.top - margin.bottom;
+
+    var svg = d3.select("#chart-container").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // set up an x scaleBand and y linear scale, fill in domain later with data
+    var  x = d3.scaleBand()
+        .range([0, width]);
+
+    var y = d3.scaleLinear()
+        .range([height, 0])
+
+    var yAxis = d3.axisLeft(y);
+
+    var selectedVar = 'male_under_5_years'
+    var name = 'age_sex'
+    var dataset = `nta_acs_${name}_2013`
+    var denominator = 'total_population'
+
+    // populate dropdown with variable names
+    console.log(variables[name])
+    Object.entries(variables[name]).forEach(function(d){
+        var dropdown = document.getElementById('inds');
+        console.log(d)
+        dropdown.innerHTML += `<option value="${d[1]}">${d[0]}</option>`;
+    })
+    
+    // add the y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+           
+    var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
+
+    d3.select('#inds')
+	  .on("change", function () {
+        var sect = document.getElementById("inds");
+        var selectedVar = sect.options[sect.selectedIndex].value;
+        console.log(selectedVar)
+        drawChart(sqlApiQuery, selectedVar)
+      })
+
+    function drawChart(sqlApiQuery, selectedVar){
+        
+        var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
+
+        d3.json(sqlApiQuery, function(error, data){
+            // debugger
+            data = data.rows
+            // make sure values are numeric
+            data.forEach(function(d, i) {
+                 d.var = +d.var;
+            })
+            // sort the data
+            data.sort(function(a, b) {
+                return a.var - b.var;
+            });
+        console.log('max value is ', d3.max(data, function(d) { return d.var; }))
+
+        // Add in domain for y linear scale
+        y.domain([0,d3.max(data, function(d) { return d.var; })])
+        
+        // map data vars to the domain of the x scaleBand           
+        x.domain(data.map(x => x.var))
+        x.paddingInner(0.05);
+
+        console.log('bandwidth: ', x.bandwidth())
+        // create a selection and bind data
+        var selection = svg.selectAll('rect')
+                        .data(data);
+
+        // create new elements wherever needed                   
+        selection.enter()
+        .append('rect')
+        .attr('x', function(d, i){
+            return x(d.var)
+        })
+        .attr('width', x.bandwidth())
+        .attr('fill', '#d1c9b8')
+        .merge(selection) // merge new elements with existing ones, so everything below applies to all
+        .attr('height', function(d){
+            return height - y(d.var);
+        })
+        .attr('y', function(d){return y(d.var)})
+        //left axis
+        svg.select('.y.axis')
+            .call(yAxis)
+
+        // remove any unused bars
+        selection.exit()
+        .remove();
+        })
+        
+    };
+
+</script>
