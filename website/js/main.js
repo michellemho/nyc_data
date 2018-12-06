@@ -51,7 +51,7 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 			conditional = conditional + ` a.ntacode ='${v}' or`
 		})
 		conditional = conditional.slice(0,-3)
-		sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(*),a.ntacode,b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by a.ntacode,b.ntaname 	 `
+		sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(*), count(*)/100::float as fake_percentage, a.ntacode,b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by a.ntacode,b.ntaname 	 `
 		list = {}
 
 		$.getJSON( sql,function(data){
@@ -82,17 +82,34 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 				
 			})
 			// vallist =vallist.slice(0,3)
+			let header = '<thead><th></th>'
+			$.each(vallist.ntaname, function(index, value){
+				header += `<th>${value}</th>`
+			})
+			header += '</thead>'
+			
+			let body = '<tbody>'
+			
 			$.each( vallist, function( key, val ) {
-				tr = `<tr>`
-				
-				$.each(val,function(k,v){
-					tr =tr +`<td>${v}</td>`
-				})
+				if (key !== 'ntaname' && key !== 'ntacode'){
+					let tr = `<tr>`
+					tr += `<td>${key}</td>`
+					$.each(val,function(k,v){
+						tr =tr +`<td>${v}</td>`
+					})
 
 
-				tr = tr+`</tr>`
-				console.log(tr)
-				$('#table1').append($(tr))
+					tr = tr+`</tr>`
+					body += tr
+				}
+			})
+
+			body += '</tbody>'
+
+			const table = '<table class="ui selectable celled table">' + header + body + '</table>'
+			console.log(table)
+			
+			$('#table-container').html(table)
 			})
 				
 			// // 	})
@@ -103,7 +120,4 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 		// console.log(list);	
 
 	});
-})
-
-
 })
