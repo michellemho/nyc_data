@@ -8,12 +8,12 @@
     src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
     <style>
 
-        .bar {
-        fill: steelblue;
-        }
+        /* .bar {
+        fill: rgb(37, 122, 192);
+        } */
     
         .bar:hover {
-        fill: brown;
+        fill: rgb(211, 128, 128);
         }
     
         .label {
@@ -36,11 +36,13 @@
     <select id="inds">
             <!-- populate dropdown by variables -->    
     </select>
+    <div id='nta-label-container'></div>
+    <div id='nta-stats'></div>
     <div id='chart-container'></div>
 </body>
 
 <script>
-    var selectedNTAs = ['MN27', 'MN11', 'MN20']
+    var selectedNTAs = ["BK33", "MN11", "MN20"]
     var margin = {
         top: 20,
         right: 20,
@@ -85,6 +87,8 @@
            
     var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 
+    var totalPop = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
+
     d3.select('#inds')
 	  .on("change", function () {
         var sect = document.getElementById("inds");
@@ -97,7 +101,17 @@
         
         var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 
-        d3.json(sqlApiQuery, function(error, data){
+        var totalPop = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
+        
+        if (selectedVar === 'total_population'){
+            query = totalPop
+            unit = 'people'
+        }
+        else{
+            query = sqlApiQuery
+            unit = '%'
+        }
+        d3.json(query, function(error, data){
             // debugger
             data = data.rows
             // make sure values are numeric
@@ -130,14 +144,30 @@
                     return x(d.var)
                 })
                 .attr('width', x.bandwidth())
-                .attr('fill', '#d1c9b8')
                 .merge(selection) // merge new elements with existing ones, so everything below applies to all
                 .attr('height', function(d){
                     return height - y(d.var);
                 })
+                .attr('fill', function(d,i){ return (selectedNTAs.includes(d.ntacode) ? "magenta" : "steelblue"); })
                 .attr('y', function(d){return y(d.var)})
+                .on('mouseenter', function (d, i) {
+                    console.log(typeof(d.ntacode))
+                    console.log(selectedNTAs)
+                    console.log(selectedNTAs.indexOf(d.ntacode))
+                    $('#nta-label-container').html(d.ntaname)
+                    if (unit === '%'){
+                        $('#nta-stats').html((d.var*100).toFixed(2) + ' ' + unit)
+                    }
+                    else{
+                        $('#nta-stats').html(d.var + ' ' + unit) 
+                    }
+                })
         //left axis
         svg.select('.y.axis')
+            .call(yAxis)
+        // grid
+        svg.select('g')
+            .attr('class', 'grid')
             .call(yAxis)
 
         // remove any unused bars
@@ -146,5 +176,6 @@
         })
         
     };
-
+// initial chart draw
+drawChart(sqlApiQuery, 'total_population')
 </script>
