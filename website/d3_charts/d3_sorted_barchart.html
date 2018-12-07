@@ -40,6 +40,7 @@
 </body>
 
 <script>
+    var selectedNTAs = ['MN27', 'MN11', 'MN20']
     var margin = {
         top: 20,
         right: 20,
@@ -123,17 +124,18 @@
 
         // create new elements wherever needed                   
         selection.enter()
-        .append('rect')
-        .attr('x', function(d, i){
-            return x(d.var)
-        })
-        .attr('width', x.bandwidth())
-        .attr('fill', '#d1c9b8')
-        .merge(selection) // merge new elements with existing ones, so everything below applies to all
-        .attr('height', function(d){
-            return height - y(d.var);
-        })
-        .attr('y', function(d){return y(d.var)})
+                .append('rect')
+                .attr("class", "bar")
+                .attr('x', function(d, i){
+                    return x(d.var)
+                })
+                .attr('width', x.bandwidth())
+                .attr('fill', '#d1c9b8')
+                .merge(selection) // merge new elements with existing ones, so everything below applies to all
+                .attr('height', function(d){
+                    return height - y(d.var);
+                })
+                .attr('y', function(d){return y(d.var)})
         //left axis
         svg.select('.y.axis')
             .call(yAxis)
