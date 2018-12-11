@@ -87,6 +87,9 @@ input{
 </div>
 <script>
 
+// This will be updated from whatever's been selected for the table
+var selectedNTAs = ['BK33', 'MN11', 'MN20']
+
 // function for use later to filter JSON by type
 function filterJSON(json, key, value) {
   var result = [];
@@ -96,18 +99,31 @@ function filterJSON(json, key, value) {
       result.push(val)
     }
   })
-  console.log(result);
+  // console.log(result);
   return result;
 }
 
 // function to nest filterJSON data, feed into fillZero, and return unnested version (flat)
 function getZeroes(data, section) {
+  debugger
   var result = [];
   var m = d3.nest().key(function(d) { return d.ntacode }).entries(data);
+  console.log(m)
+  ntas_found = []
   m.forEach(function(nta_data, idx){
     newArray = fillZero(nta_data.values, m[idx].key, section)
     result.push(newArray)
+    ntas_found.push(m[idx].key)
+  });
+
+  selectedNTAs.forEach(function(ntacode){
+    if (!(ntas_found.includes(ntacode))){
+      console.log(`nta code ${ntacode} NOT found... adding zeroes!`)
+      newArray = fillZero([{'year':0}], ntacode, section)
+      result.push(newArray)
+    }
   })
+  console.log('zeroed data! ', result.flat())
   return result.flat()
 }
 
@@ -140,13 +156,13 @@ var y = d3.scale.linear().range([height, 0]);
 
 // Define the axes
 var xAxis = d3.svg.axis().scale(x)
-    .orient("bottom").ticks(5)
+    .orient("bottom").ticks(9)
     .tickFormat(d3.time.format("%Y"))
 
 var yAxis = d3.svg.axis().scale(y)
     .orient("left").ticks(5);
 
-// Define the line
+// Define the line function
 var ntaline = d3.svg.line()
 		.interpolate("monotone")
     .x(function(d) { return x(d.year); })
@@ -163,16 +179,18 @@ var svg = d3.select("body")
 var data;
 var complaintTypes = {};
 
+
 // Get the initial data
 d3.json(`https://wxu-carto.carto.com/api/v2/sql?q=
   SELECT%20DATE_PART(%27year%27,%20created_date)%20as%20year,
   %20complaint_type,%20ntacode,%20count(*)%20FROM%20%22wxu-carto%22.threeoneone_2010_2018
-  WHERE ntacode in ('MN27', 'MN11', 'MN20')
+  WHERE ntacode in ('${selectedNTAs.join(`', '`)}')
   %20group%20by%20DATE_PART(%27year%27,%20created_date),%20complaint_type,%20ntacode&api_key=c5yeQOubTACo6uxKipiq8A`,
-  //READ ONLY SQL API KEY
+  
+//READ ONLY SQL API KEY
 function(error, json) {
   json = json.rows;
-  console.log(json);
+  // console.log(json);
 
   // debugger
   json.forEach(function(d, i) {
@@ -201,7 +219,7 @@ function(error, json) {
 		    data.forEach(function(d) {
           // Make sure 'count' is a number
     			d.count = +d.count;
-          // Below code might not be necessary, depends on data date format
+          // The code in line below might not be necessary, depends on data date format
     			// d.year = parseDate(String(d.year));
     			d.active = true;
     		});
@@ -213,7 +231,7 @@ function(error, json) {
 	// generate initial graph
 	data = filterJSON(json, 'complaint_type', 'Blocked Driveway');
   data = getZeroes(data, 'Blocked Driveway');
-
+  console.log(data)
   // data here is filtered and filled zero data
 	updateGraph(data);
 
@@ -238,14 +256,17 @@ function updateGraph(data) {
  		result = dataNest.filter(function(val,idx, arr){
 				  return $("." + val.key).attr("fill") != "#ccc"
 				  // matching the data with selector status
-				})
-
+        })
+        
     // .line here because there may already be lines there, we need to update the data
- 		var nta = svg.selectAll(".line")
-      .data(result, function(d){return d.key});
+     var nta = svg.selectAll(".line")
+                  .data(result, function(d){return d.key})
+                  
+      nta.enter()
+        .append("path")
+        .attr("class", "line")
+      nta.exit().remove()
 
-		nta.enter().append("path")
-			.attr("class", "line");
 
 		nta.transition()
 			.style("stroke", function(d,i) { return d.color = color(d.key); })
@@ -272,36 +293,7 @@ function updateGraph(data) {
 
 		  })
 		  .attr("class", function(d,i){return "legendcheckbox " + d.key})
-			.on("click", function(d){
-			  d.active = !d.active;
 
-			  d3.select(this).attr("fill", function(d){
-			    if(d3.select(this).attr("fill")  == "#ccc"){
-			      return color(d.key);
-			    }else {
-			      return "#ccc";
-			    }
-			  })
-
-
-			 var result = dataNest.filter(function(val,idx, arr){
-         return $("." + val.key).attr("fill") != "#ccc"
-       // matching the data with selector status
-      })
-
-       // Hide or show the lines based on the ID
-       svg.selectAll(".line").data(result, function(d){return d.key})
-         .enter()
-         .append("path")
-         .attr("class", "line")
-         .style("stroke", function(d,i) { return d.color = color(d.key); })
-        .attr("d", function(d){
-                return ntaline(d.values);
-         });
-
-      svg.selectAll(".line").data(result, function(d){return d.key}).exit().remove()
-
-			})
 
     // Add the Legend text
     legend.enter().append("text")
