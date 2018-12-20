@@ -2,7 +2,7 @@ $(document).ready(function() {
 
 
 
-const datasetDict ={'order_to_repair_vacate_orders':'Order to Repair or Vacate'}
+// const datasetDict ={'order_to_repair_vacate_orders':'Order to Repair or Vacate'}
 
 
 
@@ -16,7 +16,7 @@ $('#neighborhoodDropdown').dropdown();
 $ntaDropdown.empty();
 // $.each(cityList, function() {
 
-$.getJSON( 'https://wxu-carto.carto.com/api/v2/sql?q=SELECT ntaname,ntacode FROM nynta_4326',function(data){
+$.getJSON( 'https://wxu-carto.carto.com/api/v2/sql?q=SELECT ntaname,ntacode FROM nynta_4326 order by ntaname',function(data){
 	d = data['rows']
 	$ntaDropdown.append($('<option value="NYC">NYC</option>'))
 	$.each( d, function( key, val ) {
@@ -34,7 +34,7 @@ var $datasetDropdown = $("#datasetDropdown");
 $('#datasetDropdown').dropdown();
 
 $.each( datasetDict, function( key, val ) {
-		$datasetDropdown.append($(' <option value="'+key+'">'+val+'</option>'))
+		$datasetDropdown.append($(' <option value="'+key+'">'+val['name']+'</option>'))
 		
 		})
 
@@ -51,20 +51,27 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 			conditional = conditional + ` a.ntacode ='${v}' or`
 		})
 		conditional = conditional.slice(0,-3)
-		sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(*), count(*)/100::float as fake_percentage, a.ntacode,b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by a.ntacode,b.ntaname 	 `
+		// sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(*), count(*)/100::float as fake_percentage, a.ntacode,b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by a.ntacode,b.ntaname 	 `
+		sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT ${datasetDict[dataset]['groupby_count']},count(*),count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by b.population_2016 , ${datasetDict[dataset]['groupby_count']}`
 		list = {}
 
 		$.getJSON( sql,function(data){
 			d = data['rows']
-			console.log(d.length)
+			// console.log(d.length)
 			
 			vallist = {}
 			$.each(d[0],function(j,k){
 					vallist[j] = []
-
+					// console.log("val list creation",vallist[j] )
 				})
+		
+			
+
 			dict_keys = Object.keys(d[0])
-			console.log(dict_keys);
+			console.log("val list is", vallist);
+
+
+			
 			// For each row in the data
 			$.each( d, function( i, row ) {
 				// Create an empty list with the columns of our query
@@ -76,12 +83,20 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 				// console.log(row);
 				$.map(row,function(val,i){
 					vallist[i].push(val)
+				
 					// console.log(val,i);
 				})
 
 				
 			})
+			maxCols = 5
+			vallist = $.each(vallist,function(key,val){
+				vallist[key] = val.slice(0,maxCols)
+				console.log(vallist[key])
+			})
 			// vallist =vallist.slice(0,3)
+
+
 			let header = '<thead><th></th>'
 			$.each(vallist.ntaname, function(index, value){
 				header += `<th>${value}</th>`
