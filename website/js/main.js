@@ -68,7 +68,7 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 			
 
 			dict_keys = Object.keys(d[0])
-			console.log("val list is", vallist);
+			// console.log("val list is", vallist);
 
 
 			
@@ -92,7 +92,7 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 			maxCols = 5
 			vallist = $.each(vallist,function(key,val){
 				vallist[key] = val.slice(0,maxCols)
-				console.log(vallist[key])
+				// console.log(vallist[key])
 			})
 			// vallist =vallist.slice(0,3)
 
@@ -122,7 +122,7 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 			body += '</tbody>'
 
 			const table = '<table class="ui selectable celled table">' + header + body + '</table>'
-			console.log(table)
+			// console.log(table)
 			
 			$('#table-container').html(table)
 			})
