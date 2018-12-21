@@ -1,65 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style> /* set the CSS */
 
-body { font: 12px Arial;}
-
-path {
-    stroke: #ccc;
-    stroke-width: 2;
-    fill: none;
-}
-
-.axis path,
-.axis line {
-    fill: none;
-    stroke: grey;
-    stroke-width: 1;
-    shape-rendering: crispEdges;
-}
-#legendContainer{
-	position:absolute;
-	top:60px;
-	left:10px;
-	overflow: auto;
-	height:490px;
-	width:110px;
-}
-#legend{
-	width:90px;
-	height:200px;
-}
-.legend {
-    font-size: 12px;
-    font-weight: normal;
-    text-anchor: left;
-}
-.legendcheckbox{
-	cursor: pointer;
-}
-#showAll{
-	position:absolute;
-	top:600px;
-	left:880px;
-}
-#clearAll{
-	position:absolute;
-	top:600px;
-	left:950px;
-}
-input{
-	border-radius:5px;
-	padding:5px 10px;
-	background:#999;
-	border:0;
-	color:#fff;
-}
-#inds{
-	position:absolute;
-	top:10px;
-	left:10px;
-}
-</style>
 <body>
 
 <!-- load the d3.js library -->
@@ -105,10 +46,10 @@ function filterJSON(json, key, value) {
 
 // function to nest filterJSON data, feed into fillZero, and return unnested version (flat)
 function getZeroes(data, section) {
-  debugger
+  // debugger
   var result = [];
   var m = d3.nest().key(function(d) { return d.ntacode }).entries(data);
-  console.log(m)
+  // console.log(m)
   ntas_found = []
   m.forEach(function(nta_data, idx){
     newArray = fillZero(nta_data.values, m[idx].key, section)

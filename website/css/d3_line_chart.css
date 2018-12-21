@@ -17,13 +17,13 @@ path {
 #legendContainer{
 	position:absolute;
 	top:60px;
-	left:10px;
-	overflow: auto;
-	height:490px;
-	width:110px;
+	left:100px;
+	overflow: visible;
+	height:100px;
+	width:500px;
 }
 #legend{
-	width:90px;
+	width:400px;
 	height:200px;
 }
 .legend {

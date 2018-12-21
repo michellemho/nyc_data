@@ -10,28 +10,22 @@ var selectedNTAs
 
 var neighborhoodList=[];
 
-  // Create a dictionary of NTA Name:Code
-  // var allNTA={};
-  // sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT ntacode,ntaname  FROM "wxu-carto".nynta_4326 `
-  //     list = {}
+// Create a reverse  dictionary of NTA Code:Name
+function swap(json){
+        var ret = {};
+        for(var key in json){
+          ret[json[key]] = key;
+        }
+        return ret;
+      }
+allNTA_rev = swap(allNTA)
 
-  // $.getJSON( sql,function(data){
-  //       d = data['rows'];
-  //       $.each(d,function(i,v){
-  //         allNTA[v['ntaname']]= v['ntacode']  
-  //       })
-        
-  // })
-  // console.log(allNTA);
-
-
-
-
+console.log(allNTA_rev)
 
 
   // Set the dimensions of the canvas / graph
-  var margin = {top: 50, right: 20, bottom: 30, left: 160},
-      width = 1000 - margin.left - margin.right,
+  var margin = {top: 40, right: 20, bottom: 30, left: 30},
+      width = 1100 - margin.left - margin.right,
       height = 550 - margin.top - margin.bottom;
 
   // Create a parseDate function that can take in a string like '2011'
@@ -78,18 +72,18 @@ var neighborhoodList=[];
       neighborhoodList = []
        $("#table-container thead tr th").each(function(){
           neighborhoodList.push($(this).text());
-          console.log("text is ",$(this).text())
+          // console.log("text is ",$(this).text())
           
       });
-      console.log(neighborhoodList);
+      // console.log(neighborhoodList);
        selectedNTAs = $.map(neighborhoodList.slice(1),function(val,i){return allNTA[val]});
 
 
-  console.log(selectedNTAs);
+  // console.log(selectedNTAs);
   
   // Get the initial data
   sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',created_date) as year,complaint_type, ntacode, count(*) FROM "wxu-carto".threeoneone_2010_2018 WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',created_date),complaint_type,ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
-  console.log(sqlD3);
+  // console.log(sqlD3);
   
   d3.json(sqlD3,
     
@@ -116,7 +110,7 @@ var neighborhoodList=[];
   			.on("change", function () {
   				var sect = document.getElementById("inds");
   				var section = sect.options[sect.selectedIndex].value;
-          console.log("SECTION IS",section)
+          console.log("SECTION IS",json)
           // json variable is ALWAYS the same, it's the initial SQL query
           console.log(json);
   				data = filterJSON(json, 'complaint_type', section);
@@ -208,6 +202,9 @@ var neighborhoodList=[];
       y.domain([0, d3.max(data, function(d) { return d.count; })]);
 
 
+      
+
+
       // Nest the entries by nta
       dataNest = d3.nest()
           .key(function(d) {return d.ntacode;})
@@ -274,7 +271,7 @@ var neighborhoodList=[];
 
   		legend.transition()
         .style("fill", "#777" )
-        .text(function(d){return d.key;});
+        .text(function(d){return allNTA_rev[d.key];});
 
   		legend.exit().remove();
 
