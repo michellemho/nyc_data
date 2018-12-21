@@ -1,0 +1,60 @@
+/* Some basic formatting */
+code {
+  background-color: #E0E0E0;
+  padding: 0.25em 0.3em;
+  font-family: 'Lato';
+  font-weight: bold;
+}
+.container {
+  padding: 5em 0em;
+}
+.ui.dividing.header,
+.first {
+  margin-top: 5em;
+}
+
+.ui.dividing.header:first-child {
+  margin-top: 0em;
+}
+
+h1,
+h3 {
+  margin-top: 10em;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+img + img {
+  margin-top: 0.5em;
+}
+
+/* Shows content box (not negative margins) */
+.grid {
+  position: relative;
+}
+.grid:before {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: #F0F0F0;
+  content: '';
+  width: calc(100% - 2rem);
+  height: calc(100% - 2rem);
+  box-shadow: 0px 0px 0px 1px #DDDDDD inset;
+}
+.ui.divided.grid:before,
+.celled.grid:before {
+  display: none;
+}
+.ui.aligned .column:after {
+  display: none !important;
+}
+
+@media only screen and (max-width: 768px) {
+  .stackable.grid:before {
+    width: 100%;
+    left: 0em;
+  }
+}
