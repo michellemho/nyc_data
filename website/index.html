@@ -25,9 +25,7 @@
   <link rel="stylesheet" type="text/css" href="css/d3_line_chart.css">
 
   <script
-    src="https://code.jquery.com/jquery-3.3.1.min.js"
-
-    crossorigin="anonymous"></script>
+    src="https://code.jquery.com/jquery-3.3.1.min.js""></script>
   <script src="semantic/dist/semantic.min.js"></script>
   <script src="js/table_features.js"></script>
   <!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
@@ -79,17 +77,22 @@
 
 
 
-      <h3 class="first">Explore by Historical </h3>
+      
       <div class="ui two  divided grid">
         <div class="row">
+          <div class="eight wide column"> The table goes here
+          <div id='table-container'></div>
+          </div>
+        </div>
+        <h3 class="first">Explore by Historical </h3>
+        <div class="row">
           
+            
             <select id="inds" class="ui dropdown">
                 <!-- populated by types -->
-
             </select>
-        </div>
-
-        <div id = 'lineViz'>
+            <div id = 'lineViz'>
+            </div>
             <div id="legendContainer" class="legendContainer">
               <svg id="legend"></svg>
             </div>
@@ -106,8 +109,7 @@
                value="Clear All"
                onclick="clearAll()" />
             </div>
-        </div>
-
+          </div>
             <!-- The visualization goes here -->
   <!--           <iframe src="d3_charts/d3_line_chart.html"
             seamless
