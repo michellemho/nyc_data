@@ -11,7 +11,6 @@ $(document).ready(function() {
 // ///////////////////////////////
 var $ntaDropdown = $("#neighborhoodDropdown");
 $('#neighborhoodDropdown').dropdown();
-// var ntaDropdown = cities[parseInt(year)].sort();
 
 $ntaDropdown.empty();
 // $.each(cityList, function() {
