@@ -10,22 +10,29 @@
   <!-- Site Properties -->
   <title>Data Explorer</title>
 
+<!-- Semantic UI CSS -->
   <link rel="stylesheet" type="text/css" href="semantic/dist/components/reset.css">
   <link rel="stylesheet" type="text/css" href="semantic/dist/components/site.css">
-
   <link rel="stylesheet" type="text/css" href="semantic/dist/components/container.css">
   <link rel="stylesheet" type="text/css" href="semantic/dist/components/divider.css">
   <link rel="stylesheet" type="text/css" href="semantic/dist/components/grid.css">
   <link rel="stylesheet" type="text/css" href="semantic/dist/components/header.css">
   <link rel="stylesheet" type="text/css" href="semantic/dist/components/dropdown.css">
     <link rel="stylesheet" type="text/css" href="semantic/dist/semantic.css">
+  
+<!-- Main CSS -->
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+  <link rel="stylesheet" type="text/css" href="css/d3_line_chart.css">
+
   <script
     src="https://code.jquery.com/jquery-3.3.1.min.js"
 
     crossorigin="anonymous"></script>
   <script src="semantic/dist/semantic.min.js"></script>
   <script src="js/table_features.js"></script>
-  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+
 </head>
 <body>
 
@@ -48,7 +55,6 @@
 
   <div class="ui container">
 
-      <h1 class="ui dividing header">Grid Content</h1>
 
       <h3 class="first">Explore by Neighborhood</h3>
        <label>Select Dataset</label>
@@ -73,20 +79,42 @@
 
 
 
-
+      <h3 class="first">Explore by Historical </h3>
       <div class="ui two  divided grid">
         <div class="row">
-          <div class="eight wide column"> The table goes here
-          <div id='table-container'></div>
-          </div>
-          <div>
+          
+            <select id="inds" class="ui dropdown">
+                <!-- populated by types -->
+
+            </select>
+        </div>
+
+        <div id = 'lineViz'>
+            <div id="legendContainer" class="legendContainer">
+              <svg id="legend"></svg>
+            </div>
+          <!-- showAll and clearAll need to be fixed (colors) -->
+            <div id="showAll">
+              <input name="showAllButton"
+               type="button"
+               value="Show All"
+               onclick="showAll()" />
+            </div>
+            <div id="clearAll">
+              <input name="clearAllButton"
+               type="button"
+               value="Clear All"
+               onclick="clearAll()" />
+            </div>
+        </div>
+
             <!-- The visualization goes here -->
-            <iframe src="d3_charts/d3_line_chart.html"
+  <!--           <iframe src="d3_charts/d3_line_chart.html"
             seamless
             frameBorder="0"
             scrolling="no"
             width=1000
-            height=550></iframe>
+            height=550></iframe> -->
           </div>
         </div>
       </div>
@@ -94,70 +122,10 @@
 
 
 
-<style type="text/css">
 
-/* Some basic formatting */
-code {
-  background-color: #E0E0E0;
-  padding: 0.25em 0.3em;
-  font-family: 'Lato';
-  font-weight: bold;
-}
-.container {
-  padding: 5em 0em;
-}
-.ui.dividing.header,
-.first {
-  margin-top: 5em;
-}
-
-.ui.dividing.header:first-child {
-  margin-top: 0em;
-}
-
-h1,
-h3 {
-  margin-top: 10em;
-}
-
-img {
-  display: block;
-  max-width: 100%;
-}
-img + img {
-  margin-top: 0.5em;
-}
-
-/* Shows content box (not negative margins) */
-.grid {
-  position: relative;
-}
-.grid:before {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background-color: #F0F0F0;
-  content: '';
-  width: calc(100% - 2rem);
-  height: calc(100% - 2rem);
-  box-shadow: 0px 0px 0px 1px #DDDDDD inset;
-}
-.ui.divided.grid:before,
-.celled.grid:before {
-  display: none;
-}
-.ui.aligned .column:after {
-  display: none !important;
-}
-
-@media only screen and (max-width: 768px) {
-  .stackable.grid:before {
-    width: 100%;
-    left: 0em;
-  }
-}
-</style>
 </body>
 <footer>
-<script src='js/main.js'></script></footer>
+<script src='js/main.js'></script>
+<script src='js/d3_line_chart.js'></script>
+</footer>
 </html>
