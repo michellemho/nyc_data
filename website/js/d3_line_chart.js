@@ -29,33 +29,33 @@ console.log(allNTA_rev)
       height = 550 - margin.top - margin.bottom;
 
   // Create a parseDate function that can take in a string like '2011'
-  var parseDate = d3.time.format("%Y").parse;
+  var parseDate = d3v3.time.format("%Y").parse;
 
   // Trying to fix missing year data by adding in 0s, every year from 2010 to 2018...
   // This might be needed later
-  var date_range = d3.time.years(parseDate('2010'),parseDate('2019'), 1);
+  var date_range = d3v3.time.years(parseDate('2010'),parseDate('2019'), 1);
 
 
   // Set the ranges
-  var x = d3.time.scale().range([0, width]);
-  var y = d3.scale.linear().range([height, 0]);
+  var x = d3v3.time.scale().range([0, width]);
+  var y = d3v3.scale.linear().range([height, 0]);
 
   // Define the axes
-  var xAxis = d3.svg.axis().scale(x)
+  var xAxis = d3v3.svg.axis().scale(x)
       .orient("bottom").ticks(9)
-      .tickFormat(d3.time.format("%Y"))
+      .tickFormat(d3v3.time.format("%Y"))
 
-  var yAxis = d3.svg.axis().scale(y)
+  var yAxis = d3v3.svg.axis().scale(y)
       .orient("left").ticks(5);
 
   // Define the line function
-  var ntaline = d3.svg.line()
+  var ntaline = d3v3.svg.line()
   		.interpolate("monotone")
       .x(function(d) { return x(d.year); })
       .y(function(d) { return y(d.count); });
 
   // Adds the svg canvas
-  var svg = d3.select("#lineViz")
+  var svg = d3v3.select("#lineViz")
       .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
@@ -85,7 +85,7 @@ console.log(allNTA_rev)
   sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',created_date) as year,complaint_type, ntacode, count(*) FROM "wxu-carto".threeoneone_2010_2018 WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',created_date),complaint_type,ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
   // console.log(sqlD3);
   
-  d3.json(sqlD3,
+  d3v3.json(sqlD3,
     
   //READ ONLY SQL API KEY
   function(error, json) {
@@ -106,13 +106,11 @@ console.log(allNTA_rev)
     });
 
   // Update data filter when dropdown menu option changes
-  	d3.select('#inds')
+  	d3v3.select('#inds')
   			.on("change", function () {
   				var sect = document.getElementById("inds");
   				var section = sect.options[sect.selectedIndex].value;
-          console.log("SECTION IS",json)
           // json variable is ALWAYS the same, it's the initial SQL query
-          console.log(json);
   				data = filterJSON(json, 'complaint_type', section);
           data = getZeroes(data, section)
 
@@ -139,7 +137,7 @@ console.log(allNTA_rev)
   });
 })
   // color object
-  var color = d3.scale.category20();
+  var color = d3v3.scale.category20();
 
 ///////////////////////////
 ///// FUNCTIONS ///////////
@@ -147,7 +145,7 @@ console.log(allNTA_rev)
 
     // function that maps a nta's data array by year, in order to fill missing years with 0
   function fillZero(nta_data, ntacode, section){
-    var m = d3.map(nta_data, function(d) { return d.year });
+    var m = d3v3.map(nta_data, function(d) { return d.year });
     var newData = date_range.map(function(bucket) {
         return m.get(bucket) || {year: bucket, count: 0, complaint_type: section, ntacode: ntacode};
     });
@@ -173,7 +171,7 @@ console.log(allNTA_rev)
   function getZeroes(data, section) {
     // debugger
     var result = [];
-    var m = d3.nest().key(function(d) { return d.ntacode }).entries(data);
+    var m = d3v3.nest().key(function(d) { return d.ntacode }).entries(data);
     // console.log(m)
     ntas_found = []
     m.forEach(function(nta_data, idx){
@@ -196,17 +194,17 @@ console.log(allNTA_rev)
 
   function updateGraph(data) {
       // Scale the range of the data
-      console.log("data is",data);
+      // console.log("data is",data);
       // TODO fix to extend of ALL data, for example 2000 - 2018 or 2012 - 2018
-      x.domain(d3.extent(data, function(d) { return d.year; }));
-      y.domain([0, d3.max(data, function(d) { return d.count; })]);
+      x.domain(d3v3.extent(data, function(d) { return d.year; }));
+      y.domain([0, d3v3.max(data, function(d) { return d.count; })]);
 
 
       
 
 
       // Nest the entries by nta
-      dataNest = d3.nest()
+      dataNest = d3v3.nest()
           .key(function(d) {return d.ntacode;})
           // .rollup(function(v){return fillZero(v.values, function(d){return d.complaint_type})})
           .entries(data);
@@ -235,18 +233,18 @@ console.log(allNTA_rev)
   			});
 
   		nta.exit().remove();
-      console.log('dataNest',dataNest);
+      // console.log('dataNest',dataNest);
 
 
       // Remove all the legend content
-      d3.select("#legend")
+      d3v3.select("#legend")
         .selectAll("text")
         .remove();
-      d3.select("#legend")
+      d3v3.select("#legend")
         .selectAll("rect")
         .remove();
 
-  		var legend = d3.select("#legend")
+  		var legend = d3v3.select("#legend")
   			.selectAll("text")
   			.data(dataNest, function(d){return d.key});
 
@@ -290,23 +288,23 @@ console.log(allNTA_rev)
   };
 
   function clearAll(){
-    d3.selectAll(".line")
+    d3v3.selectAll(".line")
   	.transition().duration(200)
   			.attr("d", function(d){
           return null;
         });
-    d3.select("#legend").selectAll("rect")
+    d3v3.select("#legend").selectAll("rect")
     .transition().duration(200)
         .attr("fill", "#ccc");
   };
 
   function showAll(){
-    d3.selectAll(".line")
+    d3v3.selectAll(".line")
   	.transition().duration(200)
   			.attr("d", function(d){
           return ntaline(d.values);
         });
-    d3.select("#legend").selectAll("rect")
+    d3v3.select("#legend").selectAll("rect")
     .attr("fill",function(d) {
       if (d.active == true){
          return color(d.key);
