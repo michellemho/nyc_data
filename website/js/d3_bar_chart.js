@@ -39,8 +39,7 @@ var neighborhoodList=[];
 	var dataset = `nta_acs_${name}_2013`
 	var denominator = 'total_population'
 
-	// populate dropdown with variable names
-	// console.log("variables name",variables[name])
+
 	Object.entries(variables[name]).forEach(function(d){
 		var dropdown = document.getElementById('indsBar');
 		// console.log(d)
@@ -55,14 +54,6 @@ var neighborhoodList=[];
 	var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 
 	var totalPop = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
-
-	// d3.select('#indsBar')
-	// .on("change", function () {
-	// 	var sect = document.getElementById("indsBar");
-	// 	var selectedVar = sect.options[sect.selectedIndex].value;
-	// 	console.log(selectedVar)
-	// 	drawChart(sqlApiQuery, selectedVar)
-	// })
 
 
 // Get the list of the column names that are the NTA code
@@ -80,15 +71,9 @@ $("#neighborhoodDropdown").change(function() {
 	neighborhoodList = []
 	$("#table-container thead tr th").each(function(){
 		neighborhoodList.push($(this).text());
-	// console.log("text is ",$(this).text())
-
 		});
-	// console.log(neighborhoodList);
+	
 	selectedNTAs = $.map(neighborhoodList.slice(1),function(val,i){return allNTA[val]});
-
-
-
-
 
 
 	drawChart(sqlApiQuery, 'total_population')
@@ -155,9 +140,6 @@ $("#neighborhoodDropdown").change(function() {
 			.attr('fill', function(d,i){ return (selectedNTAs.includes(d.ntacode) ? selectedNTAColors[d.ntacode] : "#0d827f"); })
 			.attr('y', function(d){return y(d.var)})
 			.on('mouseenter', function (d, i) {
-				// console.log(typeof(d.ntacode))
-				// console.log(selectedNTAs)
-				// console.log(selectedNTAs.indexOf(d.ntacode))
 				$('#nta-label-container').html(d.ntaname)
 				if (unit === '%'){
 					$('#nta-stats').html((d.var*100).toFixed(2) + ' ' + unit)
