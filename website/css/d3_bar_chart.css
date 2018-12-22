@@ -1,0 +1,21 @@
+
+/* .bar {
+fill: rgb(37, 122, 192);
+} */
+
+.bar:hover {
+fill: rgb(211, 128, 128);
+}
+
+.label {
+fill: black;
+font: 10px sans-serif;
+}
+
+.y path, .y stroke, .y line {
+display: none;
+}
+
+.x path, .x stroke {
+display: none;
+}
