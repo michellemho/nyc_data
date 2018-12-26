@@ -53,7 +53,7 @@ $datasetDropdown.dropdown('setting','onChange',function(){
 		// sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(*), count(*)/100::float as fake_percentage, a.ntacode,b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by a.ntacode,b.ntaname 	 `
 		sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT ${datasetDict[dataset]['groupby_count']},count(*),count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by b.population_2016 , ${datasetDict[dataset]['groupby_count']}`
 		list = {}
-
+        console.log('swl is',sql);
 		$.getJSON( sql,function(data){
 			d = data['rows']
 			// console.log(d.length)
