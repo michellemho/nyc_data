@@ -63,45 +63,64 @@ console.log(allNTA_rev)
           .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
   var data;
-  var complaintTypes = {};
+  
+var $datasetDropdown = $("#datasetDropdown");
+
+
 
 
   // Get the list of the column names that are the NTA code
   $("#neighborhoodDropdown").change(function() {
     $('neighborhoodDropdown').dropdown('refresh');
+      
       neighborhoodList = []
+            dataset=$datasetDropdown.dropdown("get value");
+
+
        $("#table-container thead tr th").each(function(){
           neighborhoodList.push($(this).text());
           // console.log("text is ",$(this).text())
           
-      });
+        });
       // console.log(neighborhoodList);
        selectedNTAs = $.map(neighborhoodList.slice(1),function(val,i){return allNTA[val]});
 
 
-  // console.log(selectedNTAs);
+   console.log(selectedNTAs);
   
   // Get the initial data
-  sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',created_date) as year,complaint_type, ntacode, count(*) FROM "wxu-carto".threeoneone_2010_2018 WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',created_date),complaint_type,ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
-  // console.log(sqlD3);
-  
+  sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year,${datasetDict[dataset]["groupby_cat"]}, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),${datasetDict[dataset]["groupby_cat"]},ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
+  console.log(sqlD3);
+  var complaintTypes = {};
+    
   d3v3.json(sqlD3,
     
   //READ ONLY SQL API KEY
   function(error, json) {
     json = json.rows;
-    // console.log(json);
+    console.log(json);
+    var dropdown = document.getElementById('inds');
+     dropdown.innerHTML='' 
+   
 
     // debugger
     json.forEach(function(d, i) {
   		d.count = +d.count;
       d.year = parseDate(String(d.year));
-      // console.log(d.complaint_type);
-      // Adding in dropdown options
-      if (!complaintTypes[d.complaint_type]){
-        var dropdown = document.getElementById('inds');
-        dropdown.innerHTML += `<option value="${d.complaint_type}">${d.complaint_type}</option>`;
-        complaintTypes[d.complaint_type] = true;
+        
+       
+      //console.log(d[datasetDict[dataset]['groupby_cat']]);
+        complaint = d[datasetDict[dataset]['groupby_cat']] ;
+       // Adding in dropdown options
+      if (!complaintTypes[complaint]){
+               console.log(complaint);
+        console.log("complaint is",complaint);      
+        dropdown.innerHTML += `<option value="${complaint}">${complaint}</option>`;
+
+
+       
+        complaintTypes[complaint] = true;
+          console.log(complaintTypes);
       }
     });
 
@@ -111,7 +130,8 @@ console.log(allNTA_rev)
   				var sect = document.getElementById("inds");
   				var section = sect.options[sect.selectedIndex].value;
           // json variable is ALWAYS the same, it's the initial SQL query
-  				data = filterJSON(json, 'complaint_type', section);
+                console.log(section);
+  				data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
           data = getZeroes(data, section)
 
   	      //debugger
@@ -128,14 +148,17 @@ console.log(allNTA_rev)
   			});
 
   	// generate initial graph
-  	data = filterJSON(json, 'complaint_type', 'Blocked Driveway');
-    data = getZeroes(data, 'Blocked Driveway');
+    console.log('orig data is',datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
+  	data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
+    console.log("data is",data);
+    data = getZeroes(data, datasetDict[dataset]['first_cat']);
     // console.log(data)
     // data here is filtered and filled zero data
   	updateGraph(data);
 
   });
 })
+
   // color object
   var color = d3v3.scale.category20();
 
@@ -145,6 +168,7 @@ console.log(allNTA_rev)
 
     // function that maps a nta's data array by year, in order to fill missing years with 0
   function fillZero(nta_data, ntacode, section){
+      console.log(nta_data);
     var m = d3v3.map(nta_data, function(d) { return d.year });
     var newData = date_range.map(function(bucket) {
         return m.get(bucket) || {year: bucket, count: 0, complaint_type: section, ntacode: ntacode};
@@ -158,12 +182,11 @@ console.log(allNTA_rev)
   function filterJSON(json, key, value) {
     var result = [];
     json.forEach(function(val,idx,arr){
-      if(val[key] == value){
-
+        if(val[key] == value){
         result.push(val)
       }
     })
-    // console.log(result);
+     console.log(result);
     return result;
   }
 

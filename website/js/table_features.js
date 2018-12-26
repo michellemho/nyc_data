@@ -1,15 +1,22 @@
-datasetDict = {"order_to_repair_vacate_orders":
+var datasetDict = {"order_to_repair_vacate_orders":
 	{"groupby_count":["a.ntacode",
 	"b.ntaname"],	
-	"groupby_cat":["a.ntacode",
-	"b.ntaname","a.vacate_type",
-	 "a.primary_vacate_reason"],
+	"groupby_cat":"primary_vacate_reason",
+        "first_cat":"Fire Damage",
+        "datename":"vacate_effective_date",
 	"name":'Order to Repair or Vacate',
 	"count":"Neighborhood Count",
-	"perpop":"Density by Population"}
+	"perpop":"Density by Population"},
+        "threeoneone_2010_2018":
+            {"groupby_cat":"complaint_type",
+                "first_cat":"Blocked Driveway",
+            "name":"Three One One",
+            "count":"Neighborhood Count",
+            "datename":"created_date"}
+    
 }
 
-allNTA={"Airport": "QN98",
+var allNTA={"Airport": "QN98",
 "Allerton-Pelham Gardens": "BX31",
 "Annadale-Huguenot-Prince's Bay-Eltingville": "SI01",
 "Arden Heights": "SI48",
