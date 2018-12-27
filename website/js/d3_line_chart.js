@@ -8,7 +8,6 @@ var selectedNTAs
  // = ['BK33', 'MN11', 'MN20']
 
 
-var neighborhoodList=[];
 
 // Create a reverse  dictionary of NTA Code:Name
 function swap(json){
@@ -18,7 +17,9 @@ function swap(json){
         }
         return ret;
       }
+// Key value pair swap
 allNTA_rev = swap(allNTA)
+
 
 console.log(allNTA_rev)
 
@@ -64,100 +65,82 @@ console.log(allNTA_rev)
                 "translate(" + margin.left + "," + margin.top + ")");
   var data;
   
-var $datasetDropdown = $("#datasetDropdown");
-
+  var $datasetDropdown = $("#datasetDropdown");
+  var $ntaDropdown = $("#neighborhoodDropdown");
 
 
 
   // Get the list of the column names that are the NTA code
-  $("#neighborhoodDropdown").change(function() {
-    $('neighborhoodDropdown').dropdown('refresh');
+  $("#neighborhoodDropdown,#datasetDropdown").change(function() {
+  //$ntaDropdown.change(function() {
+    $ntaDropdown.dropdown('refresh');
       
-      neighborhoodList = []
-            dataset=$datasetDropdown.dropdown("get value");
+    dataset=$datasetDropdown.dropdown("get value");
+    selectedNTAs = $("#neighborhoodDropdown").dropdown("get value") 
+    selectedNTAs = selectedNTAs.slice(0,5)
 
-
-       $("#table-container thead tr th").each(function(){
-          neighborhoodList.push($(this).text());
-          // console.log("text is ",$(this).text())
-          
-        });
-      // console.log(neighborhoodList);
-       selectedNTAs = $.map(neighborhoodList.slice(1),function(val,i){return allNTA[val]});
-
-
-   console.log(selectedNTAs);
+  console.log(selectedNTAs);
   
   // Get the initial data
-  sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year,${datasetDict[dataset]["groupby_cat"]}, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),${datasetDict[dataset]["groupby_cat"]},ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
-  console.log(sqlD3);
-  var complaintTypes = {};
+    sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year,${datasetDict[dataset]["groupby_cat"]}, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),${datasetDict[dataset]["groupby_cat"]},ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
+  // console.log(sqlD3);
+    var complaintTypes = {};
     
-  d3v3.json(sqlD3,
+    d3v3.json(sqlD3,
     
-  //READ ONLY SQL API KEY
-  function(error, json) {
+    //READ ONLY SQL API KEY
+    function(error, json) {
     json = json.rows;
-    console.log(json);
+    //console.log(json);
     var dropdown = document.getElementById('inds');
-     dropdown.innerHTML='' 
+    dropdown.innerHTML='' 
    
-
-    // debugger
     json.forEach(function(d, i) {
-  		d.count = +d.count;
+  	  d.count = +d.count;
       d.year = parseDate(String(d.year));
         
-       
-      //console.log(d[datasetDict[dataset]['groupby_cat']]);
-        complaint = d[datasetDict[dataset]['groupby_cat']] ;
-       // Adding in dropdown options
-      if (!complaintTypes[complaint]){
-               console.log(complaint);
-        console.log("complaint is",complaint);      
-        dropdown.innerHTML += `<option value="${complaint}">${complaint}</option>`;
+      complaint = d[datasetDict[dataset]['groupby_cat']] ;
+      
+    // Adding in dropdown options
+    if (!complaintTypes[complaint]){
+      dropdown.innerHTML += `<option value="${complaint}">${complaint}</option>`;
 
-
-       
-        complaintTypes[complaint] = true;
-          console.log(complaintTypes);
+      complaintTypes[complaint] = true;
       }
     });
-
-  // Update data filter when dropdown menu option changes
+    
+    // data here is filtered and filled zero data
+    data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
+    data = getZeroes(data, datasetDict[dataset]['first_cat']);
+    updateGraph(data);
+ 
+    // Update data filter when dropdown menu option changes
   	d3v3.select('#inds')
-  			.on("change", function () {
-  				var sect = document.getElementById("inds");
-  				var section = sect.options[sect.selectedIndex].value;
+  	    .on("change", function () {
+          var sect = document.getElementById("inds");
+  	  	  var section = sect.options[sect.selectedIndex].value;
           // json variable is ALWAYS the same, it's the initial SQL query
-                console.log(section);
-  				data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
+  		  data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
+          console.log("get filtered data for this category",data);
           data = getZeroes(data, section)
 
   	      //debugger
-  		    data.forEach(function(d) {
-            // Make sure 'count' is a number
-      			d.count = +d.count;
+  		  data.forEach(function(d) {
+          // Make sure 'count' is a number
+      		d.count = +d.count;
             // The code in line below might not be necessary, depends on data date format
-      			// d.year = parseDate(String(d.year));
-      			d.active = true;
-      		});
+//  		    d.year = parseDate(String(d.year));
+   			d.active = true;
+      	  });
+          //console.log("updated and filtered data is",data);
+    	  updateGraph(data);
+  		  });
 
-  		    //debugger
-  				updateGraph(data);
-  			});
-
-  	// generate initial graph
-    console.log('orig data is',datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
-  	data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
-    console.log("data is",data);
-    data = getZeroes(data, datasetDict[dataset]['first_cat']);
-    // console.log(data)
-    // data here is filtered and filled zero data
-  	updateGraph(data);
-
-  });
+  	
+   
+    });
 })
+  // Update the chart when the neighborhood or data dropdowns change
 
   // color object
   var color = d3v3.scale.category20();
@@ -168,7 +151,6 @@ var $datasetDropdown = $("#datasetDropdown");
 
     // function that maps a nta's data array by year, in order to fill missing years with 0
   function fillZero(nta_data, ntacode, section){
-      console.log(nta_data);
     var m = d3v3.map(nta_data, function(d) { return d.year });
     var newData = date_range.map(function(bucket) {
         return m.get(bucket) || {year: bucket, count: 0, complaint_type: section, ntacode: ntacode};
@@ -186,7 +168,7 @@ var $datasetDropdown = $("#datasetDropdown");
         result.push(val)
       }
     })
-     console.log(result);
+  //   console.log(result);
     return result;
   }
 
@@ -205,7 +187,6 @@ var $datasetDropdown = $("#datasetDropdown");
     // selectedNTAs= getNTAs();
     selectedNTAs.forEach(function(ntacode){
       if (!(ntas_found.includes(ntacode))){
-        console.log(`nta code ${ntacode} NOT found... adding zeroes!`)
         newArray = fillZero([{'year':0}], ntacode, section)
         result.push(newArray)
       }
@@ -219,6 +200,7 @@ var $datasetDropdown = $("#datasetDropdown");
       // Scale the range of the data
       // console.log("data is",data);
       // TODO fix to extend of ALL data, for example 2000 - 2018 or 2012 - 2018
+      //console.log("data on chart is",data);
       x.domain(d3v3.extent(data, function(d) { return d.year; }));
       y.domain([0, d3v3.max(data, function(d) { return d.count; })]);
 
