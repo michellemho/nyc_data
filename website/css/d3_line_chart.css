@@ -15,9 +15,9 @@ path {
     shape-rendering: crispEdges;
 }
 #legendContainer{
-	position:absolute;
-	top:60px;
-	left:100px;
+    position:relative;
+	top:50px;
+	left:60px;
 	overflow: visible;
 	height:100px;
 	width:500px;
@@ -25,6 +25,10 @@ path {
 #legend{
 	width:400px;
 	height:200px;
+}
+#lineViz{
+  position: relative;
+  top: -60px;
 }
 .legend {
     font-size: 12px;
@@ -52,7 +56,6 @@ input{
 	color:#fff;
 }
 #inds{
-	position:absolute;
 	top:10px;
 	left:10px;
 }

@@ -39,16 +39,26 @@
   <div class="ui container">
       <h1 class="ui dividing header">Invictus Properties Data Explorer</h1>
       <h3 class="first">Lifestyle</h3>
-      <p>These maps related to lifestyle data. This includes taxi pickup and dropoff data, liquor licenses, restaurant data, and 311 data.
+      <p>These maps are related to lifestyle data. This includes liquor
+      licenses, restaurant data, and dog license data.
       </p>
       <div>
-      <iframe width="100%" height="800" frameborder="0" allow="autoplay" src="https://team.carto.com/u/wxu-carto/builder/769db8c0-6982-4510-9d5c-0f34da85b8d4/embed" allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe></div>
+      <iframe width="100%" height="800" frameborder="0" allow="autoplay"
+          src="https://team.carto.com/u/wxu-carto/builder/055f846a-0a9e-44dc-9ea9-d97d22900187/embed" allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe></div>
 
       <h3 class="first">Space</h3>
-      <p>These maps related to land. This includes tax lots, and order and vacate data.
+      <p>These maps are related to land. This includes tax lots, 311, and order and vacate data.
       </p>
       <div>
       <iframe width="100%" height="800" frameborder="0" src="https://team.carto.com/u/wxu-carto/builder/f09beacb-1ed9-4eb1-87fb-79dfd4ce45c3/embed"allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe></div>
+ <h3 class="first">Travel</h3>
+      <p>These maps ar related to travel.  
+      </p>
+      <div>
+      <iframe width="100%" height="800" frameborder="0"
+          src="https://team.carto.com/u/wxu-carto/builder/274ab864-e3e7-476c-8543-ec88c38e0ed2/embed"
+          allowfullscreen webkitallowfullscreen mozallowfullscreen
+          oallowfullscreen msallowfullscreen"></iframe></div>
   </div>
 
 
@@ -74,15 +84,9 @@
           <option value="">NYC</option>
         </select>
       </div>
-
-
-
-
-
-      
-      <div class="ui two  divided grid">
-        <div class="row">
-          <div class="eight wide column"> The table goes here
+      <!-- <div class="ui container ">-->
+        <div class="row" id="ntaTable" style="overflow-x:scroll">
+          <div class="twelve wide column"> 
           <div id='table-container'></div>
           </div>
         </div>
@@ -93,12 +97,12 @@
             <select id="inds" class="ui dropdown">
                 <!-- populated by types -->
             </select>
-            <div id = 'lineViz'>
-            </div>
             <div id="legendContainer" class="legendContainer">
               <svg id="legend"></svg>
             </div>
-          <!-- showAll and clearAll need to be fixed (colors) -->
+            <div id = 'lineViz'>
+            </div>
+                      <!-- showAll and clearAll need to be fixed (colors) -->
             <div id="showAll">
               <input name="showAllButton"
                type="button"
@@ -125,7 +129,7 @@
           </div>
 
           </div>
-        </div>
+          <!--</div>-->
       </div>
 
 

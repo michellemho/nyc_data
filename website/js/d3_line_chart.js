@@ -82,9 +82,15 @@ console.log(allNTA_rev)
   console.log(selectedNTAs);
   
   // Get the initial data
+    if (datasetDict[dataset]["groupby_cat"]=="no"){
+     sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
+ 
+    }else{
     sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year,${datasetDict[dataset]["groupby_cat"]}, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),${datasetDict[dataset]["groupby_cat"]},ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
+    }
   // console.log(sqlD3);
     var complaintTypes = {};
+    console.log(sqlD3);
     
     d3v3.json(sqlD3,
     
