@@ -1,14 +1,16 @@
 $(document).ready(function() {
 
+dataset = $("#datasetDropdown").dropdown("get value"); 
+selectedNTAs= $("#neighborhoodDropdown").dropdown("get value")
 
 
 // This will be updated from whatever's been selected for the table
-var selectedNTAs
+//var selectedNTAs
 // = ['BK33']
  // = ['BK33', 'MN11', 'MN20']
 
 
-var neighborhoodList=[];
+//var neighborhoodList=[];
 
 	var margin = {
 		top: 20,
@@ -37,6 +39,7 @@ var neighborhoodList=[];
 	var selectedVar = 'male_under_5_years'
 	var name = 'age_sex'
 	var dataset = `nta_acs_${name}_2013`
+//    dataset = $("#datasetDropdown").dropdown("get value");
 	var denominator = 'total_population'
 
 
@@ -57,7 +60,7 @@ var neighborhoodList=[];
 
 
 // Get the list of the column names that are the NTA code
-$("#neighborhoodDropdown").change(function() {
+$("#datasetDropdown,#neighborhoodDropdown").change(function() {
 	d3.select('#indsBar')
 	.on("change", function () {
 		var sect = document.getElementById("indsBar");
@@ -68,13 +71,13 @@ $("#neighborhoodDropdown").change(function() {
 
 
 	$('neighborhoodDropdown').dropdown('refresh');
-	neighborhoodList = []
-	$("#table-container thead tr th").each(function(){
-		neighborhoodList.push($(this).text());
-		});
+//	neighborhoodList = []
+//	$("#table-container thead tr th").each(function(){
+//		neighborhoodList.push($(this).text());
+//		});
 	
-	selectedNTAs = $.map(neighborhoodList.slice(1),function(val,i){return allNTA[val]});
-
+//	selectedNTAs = $.map(neighborhoodList.slice(1),function(val,i){return allNTA[val]});
+    selectedNTAs = $("#neighborhoodDropdown").dropdown("get value")
 
 	drawChart(sqlApiQuery, 'total_population')
 

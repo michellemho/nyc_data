@@ -1,20 +1,31 @@
 var datasetDict = {"order_to_repair_vacate_orders":
-	{"groupby_count":["a.ntacode",
-	"b.ntaname"],	
-	"groupby_cat":"primary_vacate_reason",
+    {"groupby_count":["a.ntacode","b.ntaname"],	
+	    "groupby_cat":"primary_vacate_reason",
         "first_cat":"Fire Damage",
         "datename":"vacate_effective_date",
-	"name":'Order to Repair or Vacate',
-	"count":"Neighborhood Count",
-	"perpop":"Density by Population"},
-        "threeoneone_2010_2018":
-            {"groupby_cat":"complaint_type",
-                "first_cat":"Blocked Driveway",
-            "name":"Three One One",
-            "count":"Neighborhood Count",
-            "datename":"created_date"}
-    
-}
+	    "name":'Order to Repair or Vacate',
+	    "count":"Neighborhood Count",
+	    "perpop":"Density by Population"
+    },"threeoneone_2010_2018":
+    {"groupby_cat":"complaint_type",
+        "groupby_count":["a.ntacode","b.ntaname"],	
+        "first_cat":"Blocked Driveway",
+        "name":"Three One One",
+        "count":"Neighborhood Count",
+        "datename":"created_date"
+    },"yellow_cab_pickup_nta":
+    {"groupby_cat":"no",
+        "groupby_count":["a.ntacode","b.ntaname"],	
+        "first_cat":"cartodb_id",
+        "name":"Yellow Cab Pickups",
+        "count":"Neighborhood Count",
+        "datename":"trip_picku"},
+    "liquor_licences_withnta":{"groupby_cat":"license_ty",
+        "groupby_count":["a.ntacode","b.ntaname"],	
+        "first_cat":"GROCERY STORE BEER",
+        "name":"Liquor Licences",
+        "count":"Neighborhood Count",
+        "datename":"license_ef"}}
 
 var allNTA={"Airport": "QN98",
 "Allerton-Pelham Gardens": "BX31",
