@@ -43,7 +43,7 @@ console.log(allNTA_rev)
 
   // Define the axes
   var xAxis = d3v3.svg.axis().scale(x)
-      .orient("bottom").ticks(9)
+      .orient("bottom")
       .tickFormat(d3v3.time.format("%Y"))
 
   var yAxis = d3v3.svg.axis().scale(y)
@@ -91,6 +91,7 @@ console.log(allNTA_rev)
     }
   // console.log(sqlD3);
     var complaintTypes = {};
+    console.log('This SQL query is data for the line chart')
     console.log(sqlD3);
     
     d3v3.json(sqlD3,
@@ -101,9 +102,18 @@ console.log(allNTA_rev)
     //console.log(json);
     var dropdown = document.getElementById('inds');
     dropdown.innerHTML='' 
-   
+
+    
+    min_year = null
+    max_year = null
     json.forEach(function(d, i) {
-  	  d.count = +d.count;
+      d.count = +d.count;
+      if (d.year > max_year || !max_year){
+        max_year = d.year
+      }
+      if (d.year < min_year || !min_year){
+        min_year = d.year
+      }
       d.year = parseDate(String(d.year));
         
       complaint = d[datasetDict[dataset]['groupby_cat']] ;
@@ -115,10 +125,15 @@ console.log(allNTA_rev)
       complaintTypes[complaint] = true;
       }
     });
+
+    // Make new date range
+    console.log(min_year, max_year)
+    var date_range = d3v3.time.years(parseDate(String(min_year)),parseDate(String(max_year+1)), 1);
     
     // data here is filtered and filled zero data
     data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
-    data = getZeroes(data, datasetDict[dataset]['first_cat']);
+    data = getZeroes(data, datasetDict[dataset]['first_cat'], date_range);
+    xAxis.ticks(date_range.length)
     updateGraph(data);
  
     // Update data filter when dropdown menu option changes
@@ -129,7 +144,7 @@ console.log(allNTA_rev)
           // json variable is ALWAYS the same, it's the initial SQL query
   		  data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
           console.log("get filtered data for this category",data);
-          data = getZeroes(data, section)
+          data = getZeroes(data, section, date_range)
 
   	      //debugger
   		  data.forEach(function(d) {
@@ -157,7 +172,7 @@ console.log(allNTA_rev)
 ///////////////////////////
 
     // function that maps a nta's data array by year, in order to fill missing years with 0
-  function fillZero(nta_data, ntacode, section){
+  function fillZero(nta_data, ntacode, section, date_range){
     var m = d3v3.map(nta_data, function(d) { return d.year });
     var newData = date_range.map(function(bucket) {
         return m.get(bucket) || {year: bucket, count: 0, complaint_type: section, ntacode: ntacode};
@@ -180,21 +195,21 @@ console.log(allNTA_rev)
   }
 
   // function to nest filterJSON data, feed into fillZero, and return unnested version (flat)
-  function getZeroes(data, section) {
+  function getZeroes(data, section, date_range) {
     // debugger
     var result = [];
     var m = d3v3.nest().key(function(d) { return d.ntacode }).entries(data);
     // console.log(m)
     ntas_found = []
     m.forEach(function(nta_data, idx){
-      newArray = fillZero(nta_data.values, m[idx].key, section)
+      newArray = fillZero(nta_data.values, m[idx].key, section, date_range)
       result.push(newArray)
       ntas_found.push(m[idx].key)
     });
     // selectedNTAs= getNTAs();
     selectedNTAs.forEach(function(ntacode){
       if (!(ntas_found.includes(ntacode))){
-        newArray = fillZero([{'year':0}], ntacode, section)
+        newArray = fillZero([{'year':0}], ntacode, section, date_range)
         result.push(newArray)
       }
     })

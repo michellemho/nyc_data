@@ -158,7 +158,7 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 				div.transition()
 					.duration(200)
 					.style("opacity", .9);
-				div.html(d.ntaname + "<br/>" + d.var.toFixed(4))
+				div.html((selectedVar === 'total_population') ? d.ntaname + "<br/>" + d.var : d.ntaname + "<br/>" + d.var.toFixed(4))
 					.style("left", xPosition + "px")
 					.style("top", yPosition + "px");
 				})
