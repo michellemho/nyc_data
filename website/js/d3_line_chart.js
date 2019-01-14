@@ -77,8 +77,9 @@ console.log(allNTA_rev)
       
     dataset=$datasetDropdown.dropdown("get value");
     selectedNTAs = $("#neighborhoodDropdown").dropdown("get value") 
-    selectedNTAs = selectedNTAs.slice(0,5)
+    // selectedNTAs = selectedNTAs.slice(0,5)
 
+  console.log('New NTAs for line chart!');
   console.log(selectedNTAs);
   
   // Get the initial data
