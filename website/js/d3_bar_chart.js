@@ -27,6 +27,11 @@ var color = d3v3.scale.category20();
 	.append("g")
 	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+	// define div for the tooltips
+	var div = d3.select("#chart-container").append("div")
+	.attr("class", "tooltip")
+	.style("opacity", 0);
+
 	// set up an x scaleBand and y linear scale, fill in domain later with data
 	var x = d3.scaleBand()
 	.range([0, width]);
@@ -146,38 +151,23 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 				return height - y(d.var);
 			})
 			.attr('y', function(d){return y(d.var)})
-			.on('mouseenter', function (d, i) {
-				d3.selectAll('.label'+i)
-				  .attr('display', 'block')
-			})
-			.on('mouseout', function (d, i) {
-				d3.selectAll('.label'+i)
-				  .attr('display', 'none')
-			})
+			.on("mouseover", function(d, i) {
+				var xPosition = parseFloat(d3.select(this).attr("x"));
+				var yPosition = parseFloat(d3.select(this).attr("y"));
 
-		// all labels are created, but set to display:none so they are hidden
-		labels.enter().append('text')
-			.attr('class', function(d,i){return 'label label'+i})
-			.merge(labels)
-			.attr('x', function(d, i){
-				return x(i)
-			})
-			.attr('y', function(d, i){
-				return y(d.var) - 15
-			})
-			.text(function(d,i){return d.ntaname})
-			.attr('display', 'none')
-		labels.enter().append('text')
-			.attr('class', function(d,i){return 'label label'+i})
-			.merge(labels)
-			.attr('x', function(d, i){
-				return x(i)
-			})
-			.attr('y', function(d){
-				return y(d.var)- 5
-			})
-			.text(function(d,i){return d.var})
-			.attr('display', 'none')
+				div.transition()
+					.duration(200)
+					.style("opacity", .9);
+				div.html(d.ntaname + "<br/>" + d.var.toFixed(4))
+					.style("left", xPosition + "px")
+					.style("top", yPosition + "px");
+				})
+			.on("mouseout", function(d) {
+			div.transition()
+				.duration(500)
+				.style("opacity", 0);
+			});
+
 			
 		//left axis
 		svg.select('.y.axis')
