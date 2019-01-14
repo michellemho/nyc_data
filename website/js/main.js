@@ -17,7 +17,7 @@ $ntaDropdown.empty();
 
 $.getJSON( 'https://wxu-carto.carto.com/api/v2/sql?q=SELECT ntaname,ntacode FROM nynta_4326 order by ntaname',function(data){
 	d = data['rows']
-	$ntaDropdown.append($('<option value="NYC">NYC</option>'))
+	// $ntaDropdown.append($('<option value="NYC">NYC</option>'))
 	$.each( d, function( key, val ) {
 		$ntaDropdown.append($(' <option value="'+val['ntacode']+'">'+val['ntaname']+'</option>'))
 		
