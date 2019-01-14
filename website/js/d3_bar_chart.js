@@ -70,8 +70,8 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 	
 //	selectedNTAs = $.map(neighborhoodList.slice(1),function(val,i){return allNTA[val]});
 	selectedNTAs = $("#neighborhoodDropdown").dropdown("get value");
-	console.log('New NTAs for barchart!');
-	console.log(selectedNTAs);
+	// console.log('New NTAs for barchart!');
+	// console.log(selectedNTAs);
 
 	d3.select('#indsBar')
 	.on("change", function () {
@@ -126,11 +126,9 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 		var selection = svg.selectAll('rect')
 		.data(data);
 
-		// Get legend neighborhoods and colors
-		// var selectedNTAColors = {}  
-
-		// $('#legend').children('rect').each(function(){
-		// 	selectedNTAColors[this.getAttribute("class").split(" ")[1]]=this.getAttribute("fill")})
+		// create label element for text labels
+		var labels = svg.selectAll('.label')
+		.data(data);
 
 		// create new elements wherever needed 
 		selection.enter()
@@ -149,14 +147,38 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 			})
 			.attr('y', function(d){return y(d.var)})
 			.on('mouseenter', function (d, i) {
-				$('#nta-label-container').html(d.ntaname)
-				if (unit === '%'){
-					$('#nta-stats').html((d.var*100).toFixed(2) + ' ' + unit)
-				}
-				else{
-					$('#nta-stats').html(d.var + ' ' + unit) 
-				}
+				d3.selectAll('.label'+i)
+				  .attr('display', 'block')
 			})
+			.on('mouseout', function (d, i) {
+				d3.selectAll('.label'+i)
+				  .attr('display', 'none')
+			})
+
+		// all labels are created, but set to display:none so they are hidden
+		labels.enter().append('text')
+			.attr('class', function(d,i){return 'label label'+i})
+			.merge(labels)
+			.attr('x', function(d, i){
+				return x(i)
+			})
+			.attr('y', function(d, i){
+				return y(d.var) - 15
+			})
+			.text(function(d,i){return d.ntaname})
+			.attr('display', 'none')
+		labels.enter().append('text')
+			.attr('class', function(d,i){return 'label label'+i})
+			.merge(labels)
+			.attr('x', function(d, i){
+				return x(i)
+			})
+			.attr('y', function(d){
+				return y(d.var)- 5
+			})
+			.text(function(d,i){return d.var})
+			.attr('display', 'none')
+			
 		//left axis
 		svg.select('.y.axis')
 		.call(yAxis)
