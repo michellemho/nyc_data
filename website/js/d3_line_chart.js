@@ -299,28 +299,4 @@ console.log(allNTA_rev)
           .call(yAxis);
   };
 
-  function clearAll(){
-    d3v3.selectAll(".line")
-  	.transition().duration(200)
-  			.attr("d", function(d){
-          return null;
-        });
-    d3v3.select("#legend").selectAll("rect")
-    .transition().duration(200)
-        .attr("fill", "#ccc");
-  };
-
-  function showAll(){
-    d3v3.selectAll(".line")
-  	.transition().duration(200)
-  			.attr("d", function(d){
-          return ntaline(d.values);
-        });
-    d3v3.select("#legend").selectAll("rect")
-    .attr("fill",function(d) {
-      if (d.active == true){
-         return color(d.key);
-       }
-     })
-  };
 })
