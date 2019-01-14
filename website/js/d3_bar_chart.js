@@ -2,7 +2,7 @@ $(document).ready(function() {
 
 dataset = $("#datasetDropdown").dropdown("get value"); 
 selectedNTAs= $("#neighborhoodDropdown").dropdown("get value")
-
+var color = d3v3.scale.category20();
 
 // This will be updated from whatever's been selected for the table
 //var selectedNTAs
@@ -61,14 +61,6 @@ selectedNTAs= $("#neighborhoodDropdown").dropdown("get value")
 
 // Get the list of the column names that are the NTA code
 $("#datasetDropdown,#neighborhoodDropdown").change(function() {
-	d3.select('#indsBar')
-	.on("change", function () {
-		var sect = document.getElementById("indsBar");
-		var selectedVar = sect.options[sect.selectedIndex].value;
-		// console.log(selectedVar)
-		drawChart(sqlApiQuery, selectedVar)
-	})
-
 
 	$('neighborhoodDropdown').dropdown('refresh');
 //	neighborhoodList = []
@@ -77,11 +69,22 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 //		});
 	
 //	selectedNTAs = $.map(neighborhoodList.slice(1),function(val,i){return allNTA[val]});
-    selectedNTAs = $("#neighborhoodDropdown").dropdown("get value")
+	selectedNTAs = $("#neighborhoodDropdown").dropdown("get value");
+	console.log('New NTAs for barchart!');
+	console.log(selectedNTAs);
 
-	drawChart(sqlApiQuery, 'total_population')
+	d3.select('#indsBar')
+	.on("change", function () {
+		var sect = document.getElementById("indsBar");
+		var selectedVar = sect.options[sect.selectedIndex].value;
+		// console.log(selectedVar)
+		drawChart(sqlApiQuery, selectedVar, selectedNTAs)
+	})
 
-	function drawChart(sqlApiQuery, selectedVar){
+
+	drawChart(sqlApiQuery, 'total_population', selectedNTAs)
+
+	function drawChart(sqlApiQuery, selectedVar, selectedNTAs){
 		d3.select('#indsBar')
 			.selectAll("rect")
         	.remove();
@@ -114,7 +117,8 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 		y.domain([0,d3.max(data, function(d) { return d.var; })])
 
 		// map data vars to the domain of the x scaleBand 
-		x.domain(data.map(x => x.var))
+        x.domain(data.map((x, i) => i))
+		
 		x.paddingInner(0.05);
 
 		// console.log('bandwidth: ', x.bandwidth())
@@ -123,24 +127,26 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 		.data(data);
 
 		// Get legend neighborhoods and colors
-		var selectedNTAColors = {}  
+		// var selectedNTAColors = {}  
 
-		$('#legend').children('rect').each(function(){
-			selectedNTAColors[this.getAttribute("class").split(" ")[1]]=this.getAttribute("fill")})
+		// $('#legend').children('rect').each(function(){
+		// 	selectedNTAColors[this.getAttribute("class").split(" ")[1]]=this.getAttribute("fill")})
 
 		// create new elements wherever needed 
 		selection.enter()
 			.append('rect')
 			.attr("class", "bar")
 			.attr('x', function(d, i){
-				return x(d.var)
+				// fixed in case of duplicate d.var
+				return x(i)
 			})
 			.attr('width', x.bandwidth())
+
 			.merge(selection) // merge new elements with existing ones, so everything below applies to all
+			.attr('fill', function(d,i){ return (selectedNTAs.includes(d.ntacode) ? color(d.ntacode) : "#828282"); })
 			.attr('height', function(d){
 				return height - y(d.var);
 			})
-			.attr('fill', function(d,i){ return (selectedNTAs.includes(d.ntacode) ? selectedNTAColors[d.ntacode] : "#0d827f"); })
 			.attr('y', function(d){return y(d.var)})
 			.on('mouseenter', function (d, i) {
 				$('#nta-label-container').html(d.ntaname)
