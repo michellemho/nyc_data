@@ -11,7 +11,20 @@
         /* .bar {
         fill: rgb(37, 122, 192);
         } */
-    
+        div.tooltip {
+        position: absolute;
+        display:inline-block;
+        text-align: center;
+        /* width: 60px;
+        height: 28px; */
+        padding: 2px;
+        font: 12px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
+        }
+
         .bar:hover {
         fill: rgb(211, 128, 128);
         }
@@ -36,8 +49,10 @@
     <select id="inds">
             <!-- populate dropdown by variables -->    
     </select>
-    <div id='nta-label-container'></div>
-    <div id='nta-stats'></div>
+    <!-- <div id='bubble-label'>
+        <div id='nta-label-container'></div>
+        <div id='nta-stats'></div>
+    </div> -->
     <div id='chart-container'></div>
 </body>
 
@@ -57,7 +72,10 @@
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
+   // define div for the tooltips
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
     // set up an x scaleBand and y linear scale, fill in domain later with data
     var  x = d3.scaleBand()
         .range([0, width]);
@@ -127,8 +145,9 @@
         // Add in domain for y linear scale
         y.domain([0,d3.max(data, function(d) { return d.var; })])
         
-        // map data vars to the domain of the x scaleBand           
-        x.domain(data.map(x => x.var))
+        // map data vars to the domain of the x scaleBand    
+        // console.log(data.length)       
+        x.domain(data.map((x, i) => i))
         x.paddingInner(0.05);
 
         console.log('bandwidth: ', x.bandwidth())
@@ -140,8 +159,10 @@
         selection.enter()
                 .append('rect')
                 .attr("class", "bar")
+                // .attr("class", function(d,i){return 'bar '+i})
                 .attr('x', function(d, i){
-                    return x(d.var)
+                    // fixed in case of duplicate d.var
+                    return x(i)
                 })
                 .attr('width', x.bandwidth())
                 .merge(selection) // merge new elements with existing ones, so everything below applies to all
@@ -150,18 +171,23 @@
                 })
                 .attr('fill', function(d,i){ return (selectedNTAs.includes(d.ntacode) ? "magenta" : "steelblue"); })
                 .attr('y', function(d){return y(d.var)})
-                .on('mouseenter', function (d, i) {
-                    console.log(typeof(d.ntacode))
-                    console.log(selectedNTAs)
-                    console.log(selectedNTAs.indexOf(d.ntacode))
-                    $('#nta-label-container').html(d.ntaname)
-                    if (unit === '%'){
-                        $('#nta-stats').html((d.var*100).toFixed(2) + ' ' + unit)
-                    }
-                    else{
-                        $('#nta-stats').html(d.var + ' ' + unit) 
-                    }
-                })
+                .on("mouseover", function(d, i) {
+                    var xPosition = parseFloat(d3.select(this).attr("x"));
+					var yPosition = parseFloat(d3.select(this).attr("y"));
+
+                    div.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    div.html(d.ntaname + "<br/>" + d.var.toFixed(2))
+                        .style("left", xPosition + "px")
+                        .style("top", yPosition + "px");
+                    })
+                .on("mouseout", function(d) {
+                div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                });
+
         //left axis
         svg.select('.y.axis')
             .call(yAxis)
@@ -172,6 +198,9 @@
 
         // remove any unused bars
         selection.exit()
+        .remove();
+        // remove any unused labelss
+        labels.exit()
         .remove();
         })
         
