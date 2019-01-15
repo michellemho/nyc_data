@@ -19,7 +19,7 @@ color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
 		bottom: 30,
 		left: 40
 	};
-	var width = 960 - margin.left - margin.right;
+	var width = 1100 - margin.left - margin.right;
 	var height = 500 - margin.top - margin.bottom;
 
 	var svg = d3.select("#chart-container").append("svg")
@@ -184,7 +184,7 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 				div.transition()
 					.duration(200)
 					.style("opacity", .9);
-				div.html((selectedVar === 'total_population') ? d.ntaname + "<br/>" + d.var : d.ntaname + "<br/>" + `${selectedVar}: `+ d.var.toFixed(4))
+				div.html((selectedVar === 'total_population' || Number.isInteger(d.var)) ? d.ntaname + "<br/>" + `${selectedVar}: `+ d.var : d.ntaname + "<br/>" + `${selectedVar}: `+ d.var.toFixed(4))
 					.style("left", xPosition + "px")
 					.style("top", yPosition + "px");
 				})

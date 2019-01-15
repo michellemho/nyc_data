@@ -305,6 +305,7 @@ console.log(allNTA_rev)
       svg.append("g")
           .attr("class", "y axis")
           .call(yAxis);
+          
   };
 
 })

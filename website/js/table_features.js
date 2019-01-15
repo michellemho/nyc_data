@@ -1,31 +1,77 @@
-var datasetDict = {"order_to_repair_vacate_orders":
-    {"groupby_count":["a.ntacode","b.ntaname"],	
-	    "groupby_cat":"primary_vacate_reason",
-        "first_cat":"Fire Damage",
-        "datename":"vacate_effective_date",
-	    "name":'Order to Repair or Vacate',
-	    "count":"Neighborhood Count",
-	    "perpop":"Density by Population"
-    },"threeoneone_2010_2018":
-    {"groupby_cat":"complaint_type",
-        "groupby_count":["a.ntacode","b.ntaname"],	
-        "first_cat":"Blocked Driveway",
-        "name":"Three One One",
-        "count":"Neighborhood Count",
-        "datename":"created_date"
-    },"yellow_cab_pickup_nta":
-    {"groupby_cat":"no",
-        "groupby_count":["a.ntacode","b.ntaname"],	
-        "first_cat":"cartodb_id",
-        "name":"Yellow Cab Pickups",
-        "count":"Neighborhood Count",
-        "datename":"trip_picku"},
-    "liquor_licences_withnta":{"groupby_cat":"license_ty",
-        "groupby_count":["a.ntacode","b.ntaname"],	
-        "first_cat":"GROCERY STORE BEER",
-        "name":"Liquor Licences",
-        "count":"Neighborhood Count",
-        "datename":"license_ef"}}
+var datasetDict = {
+    "order_to_repair_vacate_orders":
+        {
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "groupby_cat":"primary_vacate_reason",
+            "first_cat":"Fire Damage",
+            "datename":"vacate_effective_date",
+            "name":'Order to Repair or Vacate',
+            "count":"Neighborhood Count",
+            "perpop":"Density by Population"
+        },
+    "threeoneone_2010_2018":
+        {
+            "groupby_cat":"complaint_type",
+            "first_cat":"Blocked Driveway",
+            "name":"311 Complaints",
+            "count":"Neighborhood Count",
+            "datename":"created_date"
+        },
+    "yellow_cab_pickup_nta":
+        {
+            "groupby_cat":"no",
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "first_cat":"cartodb_id",
+            "name":"Yellow Cab Pickups",
+            "count":"Neighborhood Count",
+            "datename":"trip_picku"
+        },
+    "liquor_licences_withnta":
+        {
+            "groupby_cat":"license_ty",
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "first_cat":"GROCERY STORE BEER",
+            "name":"Liquor Licenses",
+            "count":"Neighborhood Count",
+            "datename":"license_ef"
+        },
+    "geocode_health_inspections":
+        {
+            "groupby_cat":"cuisine_description",
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "first_cat":"American",
+            "name":"Restaurant Health Inspections (2017)",
+            "count":"Neighborhood Count",
+            "datename":"inspection_date"
+        },
+    "nyc_dog_licensing_dataset":
+        {
+            "groupby_cat":"breedname",
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "first_cat":"Beagle",
+            "name":"Dog Licenses (2017)",
+            "count":"Neighborhood Count",
+            "datename":"licenseissueddate"
+        },
+    "nta_acs_age_sex":
+        {
+            "groupby_cat":"none",
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "first_cat":"Total",
+            "name":"ACS Age & Sex",
+            "count":"Neighborhood Count",
+            "datename":"None"
+        },
+    "nta_acs_demo":
+        {
+            "groupby_cat":"none",
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "first_cat":"Total",
+            "name":"ACS Demographics",
+            "count":"Neighborhood Count",
+            "datename":"None"
+        },
+    }
 
 var allNTA={"Airport": "QN98",
 "Allerton-Pelham Gardens": "BX31",
@@ -222,3 +268,6 @@ var allNTA={"Airport": "QN98",
 "park-cemetery-etc-Manhattan": "MN99",
 "park-cemetery-etc-Queens": "QN99",
 "park-cemetery-etc-Staten Island": "SI99"}
+
+
+colorbrewer={'Paired':{9: ["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6"]}}
