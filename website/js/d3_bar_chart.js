@@ -47,25 +47,36 @@ var color = d3v3.scale.category20();
 //    dataset = $("#datasetDropdown").dropdown("get value");
 	var denominator = 'total_population'
 
-
-	Object.entries(variables[name]).forEach(function(d){
-		var dropdown = document.getElementById('indsBar');
-		// console.log(d)
-		dropdown.innerHTML += `<option value="${d[1]}">${d[0]}</option>`;
-	})
-
 	// add the y Axis
 	svg.append("g")
 	.attr("class", "y axis")
 	.call(yAxis);
 
-	var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
-
-	var totalPop = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
-
+	// var dataset = 'liquor_licences_withnta'
 
 // Get the list of the column names that are the NTA code
 $("#datasetDropdown,#neighborhoodDropdown").change(function() {
+	dataset = $("#datasetDropdown").dropdown("get value");
+	var barchart_dropdown = document.getElementById('inds');
+
+	if (dataset.includes('acs')){
+		// variables object is ONLY for ACS variables...
+		Object.entries(variables[name]).forEach(function(d){
+			// console.log(d)
+			barchart_dropdown.innerHTML += `<option value="${d[1]}">${d[0]}</option>`;
+		})
+	}
+	// else{
+		// getUniqueCategories = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DISTINCT(${datasetDict[dataset]['groupby_cat']}) FROM ${dataset}`
+		// $.getJSON(getUniqueCategories, function(data){
+		// 	d = data['rows']
+		// 	$.each( d, function( key, val ) {
+		// 		console.log(val[`${datasetDict[dataset]['groupby_cat']}`])
+		// 		barchart_dropdown.append($('<option value="'+val[`${datasetDict[dataset]['groupby_cat']}`]+'">'+val[`${datasetDict[dataset]['groupby_cat']}`]+'</option>'))
+		// 		})
+		// })
+	// }
+
 
 	$('neighborhoodDropdown').dropdown('refresh');
 //	neighborhoodList = []
@@ -78,33 +89,45 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 	// console.log('New NTAs for barchart!');
 	// console.log(selectedNTAs);
 
-	d3.select('#indsBar')
+	d3.select('#inds')
 	.on("change", function () {
-		var sect = document.getElementById("indsBar");
+		var sect = document.getElementById("inds");
 		var selectedVar = sect.options[sect.selectedIndex].value;
-		// console.log(selectedVar)
-		drawChart(sqlApiQuery, selectedVar, selectedNTAs)
+		console.log('New type for barchart...', selectedVar)
+		drawChart(dataset, selectedVar, selectedNTAs)
 	})
 
+	var selectedVar = datasetDict[dataset]['first_cat']
 
-	drawChart(sqlApiQuery, 'total_population', selectedNTAs)
+	drawChart(dataset, selectedVar, selectedNTAs);
 
-	function drawChart(sqlApiQuery, selectedVar, selectedNTAs){
-		d3.select('#indsBar')
+	function drawChart(dataset, selectedVar, selectedNTAs){
+		d3.select('#chart-container')
 			.selectAll("rect")
-        	.remove();
-		var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
+			.remove();
 
+		var nonACSQuery =`https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(${datasetDict[dataset]["groupby_cat"]}) as var, ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]}) FROM "wxu-carto".${dataset} 
+		WHERE DATE_PART('year',${datasetDict[dataset]["datename"]}) = (select max(DATE_PART('year',${datasetDict[dataset]["datename"]})) from ${dataset})
+		AND ${datasetDict[dataset]["groupby_cat"]} = '${selectedVar}'
+		GROUP BY ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]})&api_key=c5yeQOubTACo6uxKipiq8A`
+		var acsQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 		var totalPop = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 
-		if (selectedVar === 'total_population'){
+
+		if (dataset.includes('acs')){
+			if (selectedVar === 'total_population'){
 			query = totalPop
 			unit = 'people'
-		}
-		else{
-			query = sqlApiQuery
-			unit = '%'
-		}
+			}
+			else{
+				query = acsQuery
+				unit = '%'
+			}
+		} else
+		{query = nonACSQuery
+		 unit = 'count'}
+		console.log('BAR CHART DATA QUERY:')
+		console.log(query)
 		d3.json(query, function(error, data){
 			// debugger
 			data = data.rows
@@ -158,7 +181,7 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 				div.transition()
 					.duration(200)
 					.style("opacity", .9);
-				div.html((selectedVar === 'total_population') ? d.ntaname + "<br/>" + d.var : d.ntaname + "<br/>" + d.var.toFixed(4))
+				div.html((selectedVar === 'total_population') ? d.ntaname + "<br/>" + d.var : d.ntaname + "<br/>" + `${selectedVar}: `+ d.var.toFixed(4))
 					.style("left", xPosition + "px")
 					.style("top", yPosition + "px");
 				})
