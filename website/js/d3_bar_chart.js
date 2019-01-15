@@ -2,7 +2,8 @@ $(document).ready(function() {
 
 dataset = $("#datasetDropdown").dropdown("get value"); 
 selectedNTAs= $("#neighborhoodDropdown").dropdown("get value")
-var color = d3v3.scale.category20();
+// color object
+color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
 
 // This will be updated from whatever's been selected for the table
 //var selectedNTAs
@@ -169,7 +170,9 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 			.attr('width', x.bandwidth())
 
 			.merge(selection) // merge new elements with existing ones, so everything below applies to all
-			.attr('fill', function(d,i){ return (selectedNTAs.includes(d.ntacode) ? color(d.ntacode) : "#828282"); })
+			.attr('fill', function(d,i){var the_color = selectedNTAs.includes(d.ntacode) ? color(d.ntacode) : "#828282"
+										if(the_color != "#828282"){console.log(d.ntaname, the_color)}
+										return the_color; })
 			.attr('height', function(d){
 				return height - y(d.var);
 			})

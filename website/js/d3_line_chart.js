@@ -79,8 +79,12 @@ console.log(allNTA_rev)
     selectedNTAs = $("#neighborhoodDropdown").dropdown("get value") 
     // selectedNTAs = selectedNTAs.slice(0,5)
 
-  console.log('New NTAs for line chart!');
-  console.log(selectedNTAs);
+    console.log('New NTAs for line chart!');
+    console.log(selectedNTAs);
+
+    // color object
+    color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
+
   
   // Get the initial data
     if (datasetDict[dataset]["groupby_cat"]=="no"){
@@ -89,7 +93,7 @@ console.log(allNTA_rev)
     }else{
     sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year,${datasetDict[dataset]["groupby_cat"]}, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),${datasetDict[dataset]["groupby_cat"]},ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
     }
-  // console.log(sqlD3);
+    // console.log(sqlD3);
     var complaintTypes = {};
     console.log('This SQL query is data for the line chart')
     console.log(sqlD3);
@@ -98,74 +102,67 @@ console.log(allNTA_rev)
     
     //READ ONLY SQL API KEY
     function(error, json) {
-    json = json.rows;
-    //console.log(json);
-    var dropdown = document.getElementById('inds');
-    dropdown.innerHTML='' 
+      json = json.rows;
+      //console.log(json);
+      var dropdown = document.getElementById('inds');
+      dropdown.innerHTML='' 
 
-    
-    min_year = null
-    max_year = null
-    json.forEach(function(d, i) {
-      d.count = +d.count;
-      if (d.year > max_year || !max_year){
-        max_year = d.year
-      }
-      if (d.year < min_year || !min_year){
-        min_year = d.year
-      }
-      d.year = parseDate(String(d.year));
-        
-      complaint = d[datasetDict[dataset]['groupby_cat']] ;
+      min_year = null
+      max_year = null
+      json.forEach(function(d, i) {
+          d.count = +d.count;
+          if (d.year > max_year || !max_year){
+            max_year = d.year
+          }
+          if (d.year < min_year || !min_year){
+            min_year = d.year
+          }
+          d.year = parseDate(String(d.year));
+            
+          complaint = d[datasetDict[dataset]['groupby_cat']] ;
+          
+        // Adding in dropdown options
+        if (!complaintTypes[complaint]){
+          dropdown.innerHTML += `<option value="${complaint}">${complaint}</option>`;
+
+          complaintTypes[complaint] = true;
+          }
+      });
+
+      // Make new date range
+      console.log(min_year, max_year)
+      var date_range = d3v3.time.years(parseDate(String(min_year)),parseDate(String(max_year+1)), 1);
       
-    // Adding in dropdown options
-    if (!complaintTypes[complaint]){
-      dropdown.innerHTML += `<option value="${complaint}">${complaint}</option>`;
+      // data here is filtered and filled zero data
+      data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
+      data = getZeroes(data, datasetDict[dataset]['first_cat'], date_range);
+      xAxis.ticks(date_range.length)
+      updateGraph(data);
+  
+      // Update data filter when dropdown menu option changes
+      d3v3.selectAll('#inds')
+          .on("change", function () {
+            var sect = document.getElementById("inds");
+            var section = sect.options[sect.selectedIndex].value;
+            // json variable is ALWAYS the same, it's the initial SQL query
+          data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
+            console.log("get filtered data for this category",data);
+            data = getZeroes(data, section, date_range)
 
-      complaintTypes[complaint] = true;
-      }
-    });
-
-    // Make new date range
-    console.log(min_year, max_year)
-    var date_range = d3v3.time.years(parseDate(String(min_year)),parseDate(String(max_year+1)), 1);
-    
-    // data here is filtered and filled zero data
-    data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
-    data = getZeroes(data, datasetDict[dataset]['first_cat'], date_range);
-    xAxis.ticks(date_range.length)
-    updateGraph(data);
- 
-    // Update data filter when dropdown menu option changes
-  	d3v3.select('#inds')
-  	    .on("change", function () {
-          var sect = document.getElementById("inds");
-  	  	  var section = sect.options[sect.selectedIndex].value;
-          // json variable is ALWAYS the same, it's the initial SQL query
-  		  data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
-          console.log("get filtered data for this category",data);
-          data = getZeroes(data, section, date_range)
-
-  	      //debugger
-  		  data.forEach(function(d) {
-          // Make sure 'count' is a number
-      		d.count = +d.count;
-            // The code in line below might not be necessary, depends on data date format
-//  		    d.year = parseDate(String(d.year));
-   			d.active = true;
-      	  });
-          //console.log("updated and filtered data is",data);
-    	  updateGraph(data);
+            //debugger
+          data.forEach(function(d) {
+            // Make sure 'count' is a number
+            d.count = +d.count;
+              // The code in line below might not be necessary, depends on data date format
+  //  		    d.year = parseDate(String(d.year));
+          d.active = true;
+            });
+            //console.log("updated and filtered data is",data);
+          updateGraph(data);
   		  });
-
-  	
-   
-    });
-})
+      });
+    })
   // Update the chart when the neighborhood or data dropdowns change
-
-  // color object
-  var color = d3v3.scale.category20();
 
 ///////////////////////////
 ///// FUNCTIONS ///////////
@@ -226,10 +223,6 @@ console.log(allNTA_rev)
       x.domain(d3v3.extent(data, function(d) { return d.year; }));
       y.domain([0, d3v3.max(data, function(d) { return d.count; })]);
 
-
-      
-
-
       // Nest the entries by nta
       dataNest = d3v3.nest()
           .key(function(d) {return d.ntacode;})
@@ -252,7 +245,7 @@ console.log(allNTA_rev)
 
 
   		nta.transition()
-  			.style("stroke", function(d,i) { return d.color = color(d.key); })
+  			.style("stroke", function(d,i) { console.log(d.key, color(d.key)); return d.color = color(d.key); })
   			.attr("id", function(d){ return 'tag'+d.key.replace(/\s+/g, '');}) // assign ID
   			.attr("d", function(d){
 
