@@ -70,7 +70,8 @@ console.log(allNTA_rev)
 
   // Get the list of the column names that are the NTA code
 
-  $("#neighborhoodDropdown,#datasetDropdown").change(updateLineChart())
+  $("#neighborhoodDropdown,#datasetDropdown").change(updateLineChart);
+  updateLineChart()
   // Update the chart when the neighborhood or data dropdowns change
 
   function updateLineChart() {
@@ -311,7 +312,8 @@ console.log(allNTA_rev)
   		legend.exit().remove();
       
       var lineSVG = d3v3.select('#lineSVG')
-  		chart.selectAll(".axis").remove();
+      
+      lineSVG.selectAll(".axis").remove();
 
       // Add the X Axis
       lineSVG.append("g")
@@ -322,7 +324,7 @@ console.log(allNTA_rev)
       // Add the Y Axis
       lineSVG.append("g")
           .attr("class", "y axis")
-          .attr("transform", "translate(" + margin.left + ", 0)")
+          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")")
           .call(yAxis);
           
   };
