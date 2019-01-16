@@ -94,7 +94,7 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 	.on("change", function () {
 		var sect = document.getElementById("inds");
 		var selectedVar = sect.options[sect.selectedIndex].value;
-		console.log('New type for barchart...', selectedVar)
+		// console.log('New type for barchart...', selectedVar)
 		drawChart(dataset, selectedVar, selectedNTAs)
 	})
 
@@ -127,6 +127,12 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 		} else
 		{query = nonACSQuery
 		 unit = 'count'}
+
+		 if (selectedVar == "Total"){
+			query =`https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(*) as var, ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]}) FROM "wxu-carto".${dataset} 
+			WHERE DATE_PART('year',${datasetDict[dataset]["datename"]}) = (select max(DATE_PART('year',${datasetDict[dataset]["datename"]})) from ${dataset})
+			GROUP BY ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]})&api_key=c5yeQOubTACo6uxKipiq8A`
+		 }
 		console.log('BAR CHART DATA QUERY:')
 		console.log(query)
 		d3.json(query, function(error, data){

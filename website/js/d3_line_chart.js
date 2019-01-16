@@ -126,8 +126,10 @@ console.log(allNTA_rev)
           dropdown.innerHTML += `<option value="${complaint}">${complaint}</option>`;
 
           complaintTypes[complaint] = true;
-          }
+          } 
       });
+      dropdown.innerHTML += `<option value="Total">Total</option>`;
+
 
       // Make new date range
       console.log(min_year, max_year)
@@ -180,14 +182,38 @@ console.log(allNTA_rev)
 
 
   // function for use later to filter JSON by type
-  function filterJSON(json, key, value) {
+  function filterJSON(json, key, category_selection) {
+    console.log(json);
     var result = [];
+    if (category_selection == 'Total'){
+      // I'm so sorry that the code below is a mess.
+      // Is there a better way to do a GROUP BY and SUM with a JSON Object?
+      var nestByYear = d3.nest()
+                          .key(function(d) { return d.year; })
+                          .entries(json);
+      nestByYear.forEach(function(val){
+        year = val.key
+        var nestByNTA = d3.nest()
+          .key(function(d){return d.ntacode})
+          .entries(val.values);
+        nestByNTA.forEach(function(row){
+          nta = row.key;
+          count = 0;
+          year = year;
+          row.values.forEach(function(category){
+            count = count + category.count 
+          })
+          result.push({complaint_type:'Total', count:count, ntacode: nta, year:new Date(year)})
+        })
+        });
+    }else{
     json.forEach(function(val,idx,arr){
-        if(val[key] == value){
+        if(val[key] == category_selection){
         result.push(val)
-      }
-    })
-  //   console.log(result);
+        }
+      })
+    }
+    console.log(result)
     return result;
   }
 
