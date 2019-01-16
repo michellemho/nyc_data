@@ -128,8 +128,7 @@ console.log(allNTA_rev)
           complaintTypes[complaint] = true;
           } 
       });
-      dropdown.innerHTML += `<option value="Total">Total</option>`;
-
+      dropdown.innerHTML += `<option  selected="selected" value="Total">Total</option>`;
 
       // Make new date range
       console.log(min_year, max_year)
