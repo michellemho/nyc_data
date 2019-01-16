@@ -40,8 +40,8 @@ console.log(allNTA_rev)
 
 
   // Set the ranges
-  var x = d3v3.time.scale().range([0, width]);
-  var y = d3v3.scale.linear().range([height, 0]);
+  x = d3v3.time.scale().range([0, width]);
+  y = d3v3.scale.linear().range([height, 0]);
 
   // Define the axes
   var xAxis = d3v3.svg.axis().scale(x)
@@ -57,11 +57,11 @@ console.log(allNTA_rev)
       .x(function(d) { return x(d.year); })
       .y(function(d) { return y(d.count); });
 
-  // Adds the svg canvas
+  // Adds a group (to hold paths) inside the lineSVG and translate to leave room for axes
   var chart = d3v3.select("#lineSVG")
                  .append("g")
                  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-  
+
   var data;
   var $datasetDropdown = $("#datasetDropdown");
   var $ntaDropdown = $("#neighborhoodDropdown");
@@ -133,10 +133,9 @@ console.log(allNTA_rev)
             complaintTypes[complaint] = true;
             } 
         });
-        dropdown.innerHTML += `<option  selected="selected" value="Total">Total</option>`;
+        dropdown.innerHTML += `<option selected="selected" value="Total">Total</option>`;
   
         // Make new date range
-        console.log(min_year, max_year)
         var date_range = d3v3.time.years(parseDate(String(min_year)),parseDate(String(max_year+1)), 1);
         
         // data here is filtered and filled zero data
@@ -179,7 +178,6 @@ console.log(allNTA_rev)
     var newData = date_range.map(function(bucket) {
         return m.get(bucket) || {year: bucket, count: 0, complaint_type: section, ntacode: ntacode};
     });
-    // console.log('NEW DATA!', newData);
     return newData;
   }
 
@@ -326,10 +324,60 @@ console.log(allNTA_rev)
           .attr("class", "y axis")
           .attr("transform", "translate(" + margin.left + ", " + margin.top + ")")
           .call(yAxis);
-          
-  };
 
-const tooltip = d3.select('#tooltip');
-const tooltipLine = chart.append('line');
+      lineSVG.select('g')
+      .attr('class', 'grid')
+      .call(yAxis)
+
+  const tooltip = d3.select('#tooltip');
+  const tooltipLine = chart.append('line').attr('z-index', -1);
+
+  // create tipBox that's invisible and fills lineSVG
+  tipBox = chart.append('rect')
+                .attr('class', 'rectangle_tipbox')
+                .attr('width', width)
+                .attr('height', height)
+                .attr('opacity', 0)
+                .on('mousemove', drawTooltip)
+                .on('mouseout', removeTooltip);
+
+  tooltip.exit().remove();
+
+  function removeTooltip() {
+    if (tooltip) tooltip.style('display', 'none');
+    if (tooltipLine) tooltipLine.attr('stroke', 'none');
+  }
+  
+  function addDays(date, days) {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+  function drawTooltip() {
+    tooltip.selectAll(".nta_data_label").remove();
+
+    snap_year = addDays(x.invert((d3v3.mouse(tipBox.node())[0])),183).getFullYear();
+    console.log(snap_year)
+
+    snap_year_x = x(parseDate(String(snap_year)));
+    tooltipLine.attr('stroke', 'black')
+      .attr('x1', snap_year_x)
+      .attr('x2', snap_year_x)
+      .attr('y1', 0)
+      .attr('y2', height);
+
+      tooltip.style('display', 'block')
+      .style('left', (d3v3.event.pageX + 20) + 'px')
+      .style('top', (d3v3.event.pageY - 20) + 'px')
+      .selectAll()
+      .data(dataNest).enter()
+      .append('div')
+      .attr('class', 'nta_data_label')
+      .style('color', d => d.color)
+      .style('opacity', 1)
+      .html(d => Object.keys(allNTA).find(key=> allNTA[key]===d.key) + ': ' + d.values.find(h => String(h.year) == String(parseDate(String(snap_year)))).count);
+    }
+            
+  };
 
 })

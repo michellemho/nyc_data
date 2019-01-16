@@ -19,8 +19,10 @@ color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
 		bottom: 30,
 		left: 40
 	};
-	var width = 1100 - margin.left - margin.right;
-	var height = 500 - margin.top - margin.bottom;
+	var lineSVG = $("#lineSVG")
+	var svgWidth = lineSVG.width()
+	var width = svgWidth - margin.left - margin.right;
+	var height = lineSVG.height() - margin.top - margin.bottom;
 
 	var svg = d3.select("#chart-container").append("svg")
 	.attr("width", width + margin.left + margin.right)
@@ -56,7 +58,10 @@ color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
 	// var dataset = 'liquor_licences_withnta'
 
 // Get the list of the column names that are the NTA code
-$("#datasetDropdown,#neighborhoodDropdown").change(function() {
+$("#datasetDropdown,#neighborhoodDropdown").change(updateBarChart);
+updateBarChart();
+	
+function updateBarChart() {
 	dataset = $("#datasetDropdown").dropdown("get value");
 	var barchart_dropdown = document.getElementById('inds');
 
@@ -216,12 +221,5 @@ $("#datasetDropdown,#neighborhoodDropdown").change(function() {
 	}
 		;	
 
-	});
-
-
-
-
-
-
-
-})
+};
+});
