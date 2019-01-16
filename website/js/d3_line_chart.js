@@ -25,9 +25,11 @@ console.log(allNTA_rev)
 
 
   // Set the dimensions of the canvas / graph
-  var margin = {top: 40, right: 20, bottom: 30, left: 30},
-      width = 1100 - margin.left - margin.right,
-      height = 550 - margin.top - margin.bottom;
+  var margin = {top: 40, right: 40, bottom: 40, left: 40}
+	var lineSVG = $("#lineSVG")
+	var svgWidth = lineSVG.width()
+	var width = svgWidth - margin.left - margin.right;
+	var height = lineSVG.height() - margin.top - margin.bottom;
 
   // Create a parseDate function that can take in a string like '2011'
   var parseDate = d3v3.time.format("%Y").parse;
@@ -56,114 +58,115 @@ console.log(allNTA_rev)
       .y(function(d) { return y(d.count); });
 
   // Adds the svg canvas
-  var svg = d3v3.select("#lineViz")
-      .append("svg")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-          .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-  var data;
+  var chart = d3v3.select("#lineSVG")
+                 .append("g")
+                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
+  var data;
   var $datasetDropdown = $("#datasetDropdown");
   var $ntaDropdown = $("#neighborhoodDropdown");
 
 
 
   // Get the list of the column names that are the NTA code
-  $("#neighborhoodDropdown,#datasetDropdown").change(function() {
-  //$ntaDropdown.change(function() {
-    $ntaDropdown.dropdown('refresh');
-      
-    dataset=$datasetDropdown.dropdown("get value");
-    selectedNTAs = $("#neighborhoodDropdown").dropdown("get value") 
-    // selectedNTAs = selectedNTAs.slice(0,5)
 
-    console.log('New NTAs for line chart!');
-    console.log(selectedNTAs);
-
-    // color object
-    color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
-
-  
-  // Get the initial data
-    if (datasetDict[dataset]["groupby_cat"]=="no"){
-     sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
- 
-    }else{
-    sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year,${datasetDict[dataset]["groupby_cat"]}, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),${datasetDict[dataset]["groupby_cat"]},ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
-    }
-    // console.log(sqlD3);
-    var complaintTypes = {};
-    console.log('This SQL query is data for the line chart')
-    console.log(sqlD3);
-    
-    d3v3.json(sqlD3,
-    
-    //READ ONLY SQL API KEY
-    function(error, json) {
-      json = json.rows;
-      //console.log(json);
-      var dropdown = document.getElementById('inds');
-      dropdown.innerHTML='' 
-
-      min_year = null
-      max_year = null
-      json.forEach(function(d, i) {
-          d.count = +d.count;
-          if (d.year > max_year || !max_year){
-            max_year = d.year
-          }
-          if (d.year < min_year || !min_year){
-            min_year = d.year
-          }
-          d.year = parseDate(String(d.year));
-            
-          complaint = d[datasetDict[dataset]['groupby_cat']] ;
-          
-        // Adding in dropdown options
-        if (!complaintTypes[complaint]){
-          dropdown.innerHTML += `<option value="${complaint}">${complaint}</option>`;
-
-          complaintTypes[complaint] = true;
-          } 
-      });
-      dropdown.innerHTML += `<option  selected="selected" value="Total">Total</option>`;
-
-      // Make new date range
-      console.log(min_year, max_year)
-      var date_range = d3v3.time.years(parseDate(String(min_year)),parseDate(String(max_year+1)), 1);
-      
-      // data here is filtered and filled zero data
-      data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
-      data = getZeroes(data, datasetDict[dataset]['first_cat'], date_range);
-      xAxis.ticks(date_range.length)
-      updateGraph(data);
-  
-      // Update data filter when dropdown menu option changes
-      d3v3.selectAll('#inds')
-          .on("change", function () {
-            var sect = document.getElementById("inds");
-            var section = sect.options[sect.selectedIndex].value;
-            // json variable is ALWAYS the same, it's the initial SQL query
-          data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
-            console.log("get filtered data for this category",data);
-            data = getZeroes(data, section, date_range)
-
-            //debugger
-          data.forEach(function(d) {
-            // Make sure 'count' is a number
-            d.count = +d.count;
-              // The code in line below might not be necessary, depends on data date format
-  //  		    d.year = parseDate(String(d.year));
-          d.active = true;
-            });
-            //console.log("updated and filtered data is",data);
-          updateGraph(data);
-  		  });
-      });
-    })
+  $("#neighborhoodDropdown,#datasetDropdown").change(updateLineChart())
   // Update the chart when the neighborhood or data dropdowns change
+
+  function updateLineChart() {
+    //$ntaDropdown.change(function() {
+      $ntaDropdown.dropdown('refresh');
+        
+      dataset=$datasetDropdown.dropdown("get value");
+      selectedNTAs = $("#neighborhoodDropdown").dropdown("get value") 
+      // selectedNTAs = selectedNTAs.slice(0,5)
+  
+      console.log('New NTAs for line chart!');
+      console.log(selectedNTAs);
+  
+      // color object
+      color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
+  
+    if (selectedNTAs.length == 0 || (selectedNTAs.length == 1 && selectedNTAs[0] == 'NYC')){
+      selectedNTAs = Object.values(allNTA)
+    }
+    // Get the initial data
+      if (datasetDict[dataset]["groupby_cat"]=="no"){
+       sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
+   
+      }else{
+      sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year,${datasetDict[dataset]["groupby_cat"]}, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),${datasetDict[dataset]["groupby_cat"]},ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
+      }
+      // console.log(sqlD3);
+      var complaintTypes = {};
+      console.log('This SQL query is data for the line chart')
+      console.log(sqlD3);
+      
+      d3v3.json(sqlD3,
+      
+      //READ ONLY SQL API KEY
+      function(error, json) {
+        json = json.rows;
+        //console.log(json);
+        var dropdown = document.getElementById('inds');
+        dropdown.innerHTML='' 
+  
+        min_year = null
+        max_year = null
+        json.forEach(function(d, i) {
+            d.count = +d.count;
+            if (d.year > max_year || !max_year){
+              max_year = d.year
+            }
+            if (d.year < min_year || !min_year){
+              min_year = d.year
+            }
+            d.year = parseDate(String(d.year));
+              
+            complaint = d[datasetDict[dataset]['groupby_cat']] ;
+            
+          // Adding in dropdown options
+          if (!complaintTypes[complaint]){
+            dropdown.innerHTML += `<option value="${complaint}">${complaint}</option>`;
+  
+            complaintTypes[complaint] = true;
+            } 
+        });
+        dropdown.innerHTML += `<option  selected="selected" value="Total">Total</option>`;
+  
+        // Make new date range
+        console.log(min_year, max_year)
+        var date_range = d3v3.time.years(parseDate(String(min_year)),parseDate(String(max_year+1)), 1);
+        
+        // data here is filtered and filled zero data
+        data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
+        data = getZeroes(data, datasetDict[dataset]['first_cat'], date_range);
+        xAxis.ticks(date_range.length)
+        updateGraph(data);
+    
+        // Update data filter when dropdown menu option changes
+        d3v3.selectAll('#inds')
+            .on("change", function () {
+              var sect = document.getElementById("inds");
+              var section = sect.options[sect.selectedIndex].value;
+              // json variable is ALWAYS the same, it's the initial SQL query
+            data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
+              console.log("get filtered data for this category",data);
+              data = getZeroes(data, section, date_range)
+  
+              //debugger
+            data.forEach(function(d) {
+              // Make sure 'count' is a number
+              d.count = +d.count;
+                // The code in line below might not be necessary, depends on data date format
+    //  		    d.year = parseDate(String(d.year));
+            d.active = true;
+              });
+              //console.log("updated and filtered data is",data);
+            updateGraph(data);
+          });
+        });
+      }
 
 ///////////////////////////
 ///// FUNCTIONS ///////////
@@ -239,7 +242,6 @@ console.log(allNTA_rev)
     return result.flat()
   }
 
-
   function updateGraph(data) {
       // Scale the range of the data
       // console.log("data is",data);
@@ -251,35 +253,25 @@ console.log(allNTA_rev)
       // Nest the entries by nta
       dataNest = d3v3.nest()
           .key(function(d) {return d.ntacode;})
-          // .rollup(function(v){return fillZero(v.values, function(d){return d.complaint_type})})
           .entries(data);
+      console.log('this is the dataNest: ', dataNest);
 
-   		result = dataNest.filter(function(val,idx, arr){
-  				  return $("." + val.key).attr("fill") != "#ccc"
-  				  // matching the data with selector status
-          })
-          
-      // .line here because there may already be lines there, we need to update the data
-       var nta = svg.selectAll(".line")
-                    .data(result, function(d){return d.key})
+            // .line here because there may already be lines there, we need to update the data
+       var nta = chart.selectAll(".line")
+                    .data(dataNest, function(d){return d.key})
                     
         nta.enter()
           .append("path")
           .attr("class", "line")
+
         nta.exit().remove()
 
+        nta.transition()
+           .style("stroke", function(d,i) { console.log(d.key, color(d.key)); return d.color = color(d.key); })
+           .attr("id", function(d){ return 'tag'+d.key.replace(/\s+/g, '');}) // assign ID
+           .attr("d", function(d){ return ntaline(d.values) });
 
-  		nta.transition()
-  			.style("stroke", function(d,i) { console.log(d.key, color(d.key)); return d.color = color(d.key); })
-  			.attr("id", function(d){ return 'tag'+d.key.replace(/\s+/g, '');}) // assign ID
-  			.attr("d", function(d){
-
-  				return ntaline(d.values)
-  			});
-
-  		nta.exit().remove();
-      // console.log('dataNest',dataNest);
-
+    		nta.exit().remove();
 
       // Remove all the legend content
       d3v3.select("#legend")
@@ -317,20 +309,25 @@ console.log(allNTA_rev)
         .text(function(d){return allNTA_rev[d.key];});
 
   		legend.exit().remove();
-
-  		svg.selectAll(".axis").remove();
+      
+      var lineSVG = d3v3.select('#lineSVG')
+  		chart.selectAll(".axis").remove();
 
       // Add the X Axis
-      svg.append("g")
+      lineSVG.append("g")
           .attr("class", "x axis")
-          .attr("transform", "translate(0," + height + ")")
+          .attr("transform", "translate(" + margin.left + "," + (height + margin.top) + ")")
           .call(xAxis);
 
       // Add the Y Axis
-      svg.append("g")
+      lineSVG.append("g")
           .attr("class", "y axis")
+          .attr("transform", "translate(" + margin.left + ", 0)")
           .call(yAxis);
           
   };
+
+const tooltip = d3.select('#tooltip');
+const tooltipLine = chart.append('line');
 
 })

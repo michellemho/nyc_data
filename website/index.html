@@ -37,7 +37,7 @@
 </head>
 <body>
 
-  <div class="ui container">
+  <!-- <div class="ui container">
       <h1 class="ui dividing header">Invictus Properties Data Explorer</h1>
       <h3 class="first">Lifestyle</h3>
       <p>These maps are related to lifestyle data. This includes liquor
@@ -60,69 +60,50 @@
           src="https://team.carto.com/u/wxu-carto/builder/274ab864-e3e7-476c-8543-ec88c38e0ed2/embed"
           allowfullscreen webkitallowfullscreen mozallowfullscreen
           oallowfullscreen msallowfullscreen"></iframe></div>
-  </div>
+  </div> -->
 
 
 
   <div class="ui container">
+    <h3 class="first">Explore by Neighborhood</h3>
+    <label>Select Dataset</label>
+    <div id='datasets'>
+      <select  id='datasetDropdown' class="ui search fluid dropdown"></select>
+    </div>
 
+    <label>Select Neighborhoods</label>
+    <div id='neighborhoods'>
+      <select id = 'neighborhoodDropdown' multiple="" class="ui fluid search dropdown">
+        <option value="NYC">NYC</option>
+      </select>
+    </div>
 
-      <h3 class="first">Explore by Neighborhood</h3>
-       <label>Select Dataset</label>
-      <div id='datasets'>
-
-        <select  id = 'datasetDropdown' class="ui search fluid dropdown">
-          <option value="">Order to Repair or Vacate</option>
-        </select>
-      </div>
-
-
-
-      <label>Select Neighborhoods</label>
-      <div id='neighborhoods'>
-
-        <select id = 'neighborhoodDropdown' multiple="" class="ui fluid search dropdown">
-          <option value="">NYC</option>
-        </select>
-      </div>
-      <!-- <div class="ui container ">-->
-        <div class="row" id="ntaTable" style="overflow-x:scroll">
-          <div class="twelve wide column"> 
-          <div id='table-container'></div>
-          </div>
+    <div class="row" id="ntaTable" style="overflow-x:scroll">
+      <div class="twelve wide column"> 
+        <div id='table-container'>
+          <!-- table goes here -->
         </div>
-        <h3 class="first">Explore by Historical </h3>
-        <div class="row">
-          
-            
-            <select id="inds" class="ui dropdown">
-                <!-- populated by types -->
-            </select>
-            <div id="legendContainer" class="legendContainer">
-              <svg id="legend"></svg>
-            </div>
-            <div id = 'lineViz'>
-            </div>
-          </div>
-
-           <h3 class="first">Explore across Neighborhoods </h3>
-           <div class="row">
-          
-            
-          <!-- <select id="inds" class="ui dropdown"> -->
-          </select>
-            <div id='nta-label-container'></div>
-            <div id='nta-stats'></div>
-           <div id='chart-container'></div>
-          </div>
-
-          </div>
-          <!--</div>-->
       </div>
+    </div>
+    
+    <h3 class="first">Compare Neighborhoods by Historical Trend</h3>
+    <div class="row">
+      <select id="inds" class="ui dropdown"></select>
+      <div id="legendContainer" class="legendContainer">
+        <svg id="legend"></svg>
+      </div>
+      <div id = 'lineViz'></div>
+      <svg id='lineSVG' width="100%" height="550"></svg>
+    </div>
 
-
-
-
+    <h3 class="first">Compare all Neighborhoods (Most Recent Year of Data)</h3>
+    <div class="row">
+      <div id='nta-label-container'></div>
+      <div id='nta-stats'></div>
+      <div id='chart-container'></div>
+      <div id='tooltip' style='position:absolute;background-color:lightgray;padding:5px'></div>
+    </div>
+  </div>
 
 </body>
 <footer>
