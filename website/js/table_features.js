@@ -3,7 +3,7 @@ var datasetDict = {
         {
             "groupby_count":["a.ntacode","b.ntaname"],	
             "groupby_cat":"primary_vacate_reason",
-            "first_cat":"Fire Damage",
+            "first_cat":"Total",
             "datename":"vacate_effective_date",
             "name":'Order to Repair or Vacate',
             "count":"Neighborhood Count",
@@ -12,7 +12,7 @@ var datasetDict = {
     "threeoneone_2010_2018":
         {
             "groupby_cat":"complaint_type",
-            "first_cat":"Blocked Driveway",
+            "first_cat":"Total",
             "name":"311 Complaints",
             "count":"Neighborhood Count",
             "datename":"created_date"
@@ -30,7 +30,7 @@ var datasetDict = {
         {
             "groupby_cat":"license_ty",
             "groupby_count":["a.ntacode","b.ntaname"],	
-            "first_cat":"GROCERY STORE BEER",
+            "first_cat":"Total",
             "name":"Liquor Licenses",
             "count":"Neighborhood Count",
             "datename":"license_ef"
@@ -39,7 +39,7 @@ var datasetDict = {
         {
             "groupby_cat":"cuisine_description",
             "groupby_count":["a.ntacode","b.ntaname"],	
-            "first_cat":"American",
+            "first_cat":"Total",
             "name":"Restaurant Health Inspections (2017)",
             "count":"Neighborhood Count",
             "datename":"inspection_date"
@@ -48,7 +48,7 @@ var datasetDict = {
         {
             "groupby_cat":"breedname",
             "groupby_count":["a.ntacode","b.ntaname"],	
-            "first_cat":"Beagle",
+            "first_cat":"Total",
             "name":"Dog Licenses (2017)",
             "count":"Neighborhood Count",
             "datename":"licenseissueddate"
