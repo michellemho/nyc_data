@@ -21,7 +21,7 @@ function swap(json){
 allNTA_rev = swap(allNTA)
 
 
-console.log(allNTA_rev)
+// console.log(allNTA_rev)
 
 
   // Set the dimensions of the canvas / graph
@@ -82,8 +82,8 @@ console.log(allNTA_rev)
       selectedNTAs = $("#neighborhoodDropdown").dropdown("get value") 
       // selectedNTAs = selectedNTAs.slice(0,5)
   
-      console.log('New NTAs for line chart!');
-      console.log(selectedNTAs);
+      // console.log('New NTAs for line chart!');
+      // console.log(selectedNTAs);
   
       // color object
       color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
@@ -151,7 +151,7 @@ console.log(allNTA_rev)
               var section = sect.options[sect.selectedIndex].value;
               // json variable is ALWAYS the same, it's the initial SQL query
             data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
-              console.log("get filtered data for this category",data);
+              // console.log("get filtered data for this category",data);
               data = getZeroes(data, section, date_range)
   
               //debugger
@@ -184,7 +184,7 @@ console.log(allNTA_rev)
 
   // function for use later to filter JSON by type
   function filterJSON(json, key, category_selection) {
-    console.log(json);
+    // console.log(json);
     var result = [];
     if (category_selection == 'Total'){
       // I'm so sorry that the code below is a mess.
@@ -214,7 +214,7 @@ console.log(allNTA_rev)
         }
       })
     }
-    console.log(result)
+    // console.log(result)
     return result;
   }
 
@@ -253,7 +253,7 @@ console.log(allNTA_rev)
       dataNest = d3v3.nest()
           .key(function(d) {return d.ntacode;})
           .entries(data);
-      console.log('this is the dataNest: ', dataNest);
+      // console.log('this is the dataNest: ', dataNest);
 
             // .line here because there may already be lines there, we need to update the data
        var nta = chart.selectAll(".line")
@@ -266,7 +266,7 @@ console.log(allNTA_rev)
         nta.exit().remove()
 
         nta.transition()
-           .style("stroke", function(d,i) { console.log(d.key, color(d.key)); return d.color = color(d.key); })
+           .style("stroke", function(d,i) { return d.color = color(d.key); })
            .attr("id", function(d){ return 'tag'+d.key.replace(/\s+/g, '');}) // assign ID
            .attr("d", function(d){ return ntaline(d.values) });
 
@@ -357,7 +357,7 @@ console.log(allNTA_rev)
     tooltip.selectAll(".nta_data_label").remove();
 
     snap_year = addDays(x.invert((d3v3.mouse(tipBox.node())[0])),183).getFullYear();
-    console.log(snap_year)
+    // console.log(snap_year)
 
     snap_year_x = x(parseDate(String(snap_year)));
     tooltipLine.attr('stroke', 'black')
