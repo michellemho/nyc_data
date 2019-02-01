@@ -25,7 +25,7 @@ allNTA_rev = swap(allNTA)
 
 
   // Set the dimensions of the canvas / graph
-  var margin = {top: 40, right: 40, bottom: 40, left: 40}
+  var margin = {top: 40, right: 50, bottom: 40, left: 50}
 	var lineSVG = $("#lineSVG")
 	var svgWidth = lineSVG.width()
 	var width = svgWidth - margin.left - margin.right;
@@ -79,6 +79,7 @@ allNTA_rev = swap(allNTA)
       $ntaDropdown.dropdown('refresh');
         
       dataset=$datasetDropdown.dropdown("get value");
+      console.log(dataset)
       selectedNTAs = $("#neighborhoodDropdown").dropdown("get value") 
       // selectedNTAs = selectedNTAs.slice(0,5)
   
@@ -92,9 +93,8 @@ allNTA_rev = swap(allNTA)
       selectedNTAs = Object.values(allNTA)
     }
     // Get the initial data
-      if (datasetDict[dataset]["groupby_cat"]=="no"){
-       sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
-   
+    if (dataset.includes('acs')){ // Use for ACS data
+       sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT value as count, ntacode, variable, year from "wxu-carto".${dataset} as a WHERE ntacode in ('${selectedNTAs.join(`', '`)}')`
       }else{
       sqlD3 = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT DATE_PART('year',${datasetDict[dataset]["datename"]}) as year,${datasetDict[dataset]["groupby_cat"]}, ntacode, count(*) FROM "wxu-carto".${dataset} WHERE ntacode in ('${selectedNTAs.join(`', '`)}') group by DATE_PART('year',${datasetDict[dataset]["datename"]}),${datasetDict[dataset]["groupby_cat"]},ntacode&api_key=c5yeQOubTACo6uxKipiq8A`
       }
@@ -133,13 +133,16 @@ allNTA_rev = swap(allNTA)
             complaintTypes[complaint] = true;
             } 
         });
-        dropdown.innerHTML += `<option selected="selected" value="Total">Total</option>`;
-  
+        if (!dataset.includes('acs')){
+          dropdown.innerHTML += `<option selected="selected" value="Total">Total</option>`;
+        } else {
+          dropdown.value = datasetDict[dataset]['first_cat'];
+        }
         // Make new date range
         var date_range = d3v3.time.years(parseDate(String(min_year)),parseDate(String(max_year+1)), 1);
         
         // data here is filtered and filled zero data
-        data = filterJSON(json, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
+        data = filterJSON(json, dataset, datasetDict[dataset]['groupby_cat'],datasetDict[dataset]['first_cat']);
         data = getZeroes(data, datasetDict[dataset]['first_cat'], date_range);
         xAxis.ticks(date_range.length)
         updateGraph(data);
@@ -150,7 +153,7 @@ allNTA_rev = swap(allNTA)
               var sect = document.getElementById("inds");
               var section = sect.options[sect.selectedIndex].value;
               // json variable is ALWAYS the same, it's the initial SQL query
-            data = filterJSON(json,datasetDict[dataset]['groupby_cat'] ,section);
+            data = filterJSON(json, dataset, datasetDict[dataset]['groupby_cat'] ,section);
               // console.log("get filtered data for this category",data);
               data = getZeroes(data, section, date_range)
   
@@ -183,10 +186,10 @@ allNTA_rev = swap(allNTA)
 
 
   // function for use later to filter JSON by type
-  function filterJSON(json, key, category_selection) {
+  function filterJSON(json, dataset, key, category_selection) {
     // console.log(json);
     var result = [];
-    if (category_selection == 'Total'){
+    if (category_selection == 'Total' && !dataset.includes('acs')){
       // I'm so sorry that the code below is a mess.
       // Is there a better way to do a GROUP BY and SUM with a JSON Object?
       var nestByYear = d3.nest()
@@ -207,7 +210,9 @@ allNTA_rev = swap(allNTA)
           result.push({complaint_type:'Total', count:count, ntacode: nta, year:new Date(year)})
         })
         });
-    }else{
+    // } else if (category_selection == 'Total' && dataset.includes('acs'){
+      
+    } else{
     json.forEach(function(val,idx,arr){
         if(val[key] == category_selection){
         result.push(val)

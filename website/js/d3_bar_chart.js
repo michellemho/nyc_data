@@ -47,8 +47,8 @@ color = d3v3.scale.ordinal().domain(selectedNTAs).range(colorbrewer.Paired[9]);
 	var selectedVar = 'male_under_5_years'
 	var name = 'age_sex'
 	var dataset = `nta_acs_${name}_2013`
-//    dataset = $("#datasetDropdown").dropdown("get value");
-	var denominator = 'total_population'
+	
+	// var denominator = 'total_population'
 
 	// add the y Axis
 	svg.append("g")
@@ -111,33 +111,44 @@ function updateBarChart() {
 		d3.select('#chart-container')
 			.selectAll("rect")
 			.remove();
+		var	base = `https://wxu-carto.carto.com/api/v2/sql?q=`		
+		var nonACSQuery = base + `SELECT count(${datasetDict[dataset]["groupby_cat"]}) as var, ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]}) FROM "wxu-carto".${dataset} 
+								WHERE DATE_PART('year',${datasetDict[dataset]["datename"]}) = (select max(DATE_PART('year',${datasetDict[dataset]["datename"]})) from ${dataset})
+								AND ${datasetDict[dataset]["groupby_cat"]} = '${selectedVar}'
+								GROUP BY ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]})&api_key=c5yeQOubTACo6uxKipiq8A`
+		
+		var non_denom_acsQuery = base + `SELECT a.value as var, a.ntacode, b.ntaname, year FROM ${dataset} as a, "wxu-carto".nynta_4326 as b WHERE a.variable = '${selectedVar}' AND a.year = (select max(year) from ${dataset}) AND a.ntacode = b.ntacode`
+		
+		// var totalPop = base + `SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 
-		var nonACSQuery =`https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(${datasetDict[dataset]["groupby_cat"]}) as var, ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]}) FROM "wxu-carto".${dataset} 
-		WHERE DATE_PART('year',${datasetDict[dataset]["datename"]}) = (select max(DATE_PART('year',${datasetDict[dataset]["datename"]})) from ${dataset})
-		AND ${datasetDict[dataset]["groupby_cat"]} = '${selectedVar}'
-		GROUP BY ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]})&api_key=c5yeQOubTACo6uxKipiq8A`
-		var acsQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
-		var totalPop = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 
+		if (dataset.includes('acs')){ 
+			query = non_denom_acsQuery
+			unit = 'count'
+			// } else if (dataset.includes('acs') && datasetDict[dataset]['denom_table']) { //denominated acs data
+			// 	query = base + `SELECT a.value/c.denom as var, a.ntacode, b.ntaname, a.year 
+			// 	FROM ${dataset} as a,
+			// 	"wxu-carto".nynta_4326 as b,
+			// 	(SELECT value as denom, ntacode, year FROM ${datasetDict[dataset]['denom_table']} WHERE variable = ${datasetDict[dataset]['denom']} and year = 2016) as c 
+			// 	WHERE a.variable = '${selectedVar}' 
+			// 	AND a.ntacode = c.ntacode 
+			// 	AND a.year = c.year 
+			// 	AND a.year = (select max(year) from ${dataset} ) 
+			// 	AND c.year = (select max(year) from ${datasetDict[dataset]['denom_table']}) 
+			// 	AND a.ntacode = b.ntacode`
+			// 	unit = '%'
+			} else {
+				query = nonACSQuery
+		 		unit = 'count'}
 
-		if (dataset.includes('acs')){
-			if (selectedVar === 'total_population'){
-			query = totalPop
-			unit = 'people'
-			}
-			else{
-				query = acsQuery
-				unit = '%'
-			}
-		} else
-		{query = nonACSQuery
-		 unit = 'count'}
-
-		 if (selectedVar == "Total"){
+		 if (selectedVar == "Total" && !dataset.includes('acs')){
 			query =`https://wxu-carto.carto.com/api/v2/sql?q=SELECT count(*) as var, ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]}) FROM "wxu-carto".${dataset} 
 			WHERE DATE_PART('year',${datasetDict[dataset]["datename"]}) = (select max(DATE_PART('year',${datasetDict[dataset]["datename"]})) from ${dataset})
 			GROUP BY ntacode, ntaname, DATE_PART('year',${datasetDict[dataset]["datename"]})&api_key=c5yeQOubTACo6uxKipiq8A`
+		 } else if (selectedVar == "Total" && dataset.includes('acs')){
+			query = base + `SELECT a.value as var, a.ntacode, b.ntaname, year FROM nta_acs_age_sex as a, "wxu-carto".nynta_4326 as b WHERE a.variable = 'total_population' AND a.year = (select max(year) from ${dataset}) AND a.ntacode = b.ntacode`
 		 }
+
 		console.log('BAR CHART DATA QUERY:')
 		console.log(query)
 		d3.json(query, function(error, data){

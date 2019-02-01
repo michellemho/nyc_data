@@ -55,22 +55,35 @@ var datasetDict = {
         },
     "nta_acs_age_sex":
         {
-            "groupby_cat":"none",
+            "groupby_cat":"variable",
             "groupby_count":["a.ntacode","b.ntaname"],	
-            "first_cat":"Total",
+            "first_cat":"total_population",
             "name":"ACS Age & Sex",
             "count":"Neighborhood Count",
-            "datename":"None"
+            "datename":"year",
+            "denom_table":'nta_acs_age_sex',
+            "denominator":"total_population"
         },
     "nta_acs_demo":
         {
-            "groupby_cat":"none",
+            "groupby_cat":"variable",
             "groupby_count":["a.ntacode","b.ntaname"],	
-            "first_cat":"Total",
+            "first_cat":"white_alone",
             "name":"ACS Demographics",
             "count":"Neighborhood Count",
-            "datename":"None"
+            "datename":"year",
+            "denom_table":"nta_acs_age_sex",
+            "denom":"total_population"
         },
+    "nta_acs_income":
+        {
+            "groupby_cat":"variable",
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "first_cat":"_100_000_to_124_999",
+            "name":"ACS Income by Households",
+            "count":"Neighborhood Count",
+            "datename":"year",
+        },        
     }
 
 var allNTA={"Airport": "QN98",
@@ -271,3 +284,34 @@ var allNTA={"Airport": "QN98",
 
 
 colorbrewer={'Paired':{9: ["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6"]}}
+
+var acs_table_sql=```
+SELECT * from nta_acs_demo as a
+WHERE ntacode in (${ntaList})
+```
+
+var other_table_sql=```
+SELECT a.*,
+	   to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') type_percentage,
+       b.count_nta FROM
+			(SELECT * FROM
+				(SELECT a.*,
+						rank() OVER (PARTITION BY ntacode ORDER BY count_per_type DESC ) as rank
+				FROM (SELECT a.ntacode,
+							  b.ntaname,
+							  a.${datasetDict[dataset]['groupby_cat']},
+							  count(*) count_per_type,
+							  to_char(count(*)/b.population_2016*100,'999D99%25') as perpop
+						FROM  "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b
+						WHERE a.ntacode = b.ntacode
+						GROUP BY b.population_2016, a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']}
+						ORDER BY ntaname,${datasetDict[dataset]['groupby_cat']}) as a ) as t
+				WHERE t.rank<=5 ) as a,
+			(SELECT a.ntacode,
+					b.ntaname,
+					count(*) count_nta,
+					count(*)/b.population_2016 as perpop
+				FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b
+				WHERE a.ntacode = b.ntacode GROUP BY b.population_2016, a.ntacode,b.ntaname) as b
+            WHERE a.ntacode = b.ntacode and (${conditional})
+```

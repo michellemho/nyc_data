@@ -47,7 +47,9 @@ $ntaDropdown.dropdown('setting', 'onChange',function(){updateTable()});
 function updateTable(){
   	dataset = $("#datasetDropdown").dropdown("get value") 	
     ntaList = $("#neighborhoodDropdown").dropdown("get value") 
-	
+	if (dataset.includes('acs')){
+		return
+	}
     conditional=''
 	$.each(ntaList,function(k,v){
 		conditional = conditional + ` a.ntacode ='${v}' or`
