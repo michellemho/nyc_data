@@ -17,15 +17,15 @@ var datasetDict = {
             "count":"Neighborhood Count",
             "datename":"created_date"
         },
-    "yellow_cab_pickup_nta":
-        {
-            "groupby_cat":"no",
-            "groupby_count":["a.ntacode","b.ntaname"],	
-            "first_cat":"cartodb_id",
-            "name":"Yellow Cab Pickups",
-            "count":"Neighborhood Count",
-            "datename":"trip_picku"
-        },
+    // "yellow_cab_pickup_nta":
+    //     {
+    //         "groupby_cat":"no",
+    //         "groupby_count":["a.ntacode","b.ntaname"],	
+    //         "first_cat":"Total",
+    //         "name":"Yellow Cab Pickups",
+    //         "count":"Neighborhood Count",
+    //         "datename":"trip_picku"
+    //     },
     "liquor_licences_withnta":
         {
             "groupby_cat":"license_ty",
