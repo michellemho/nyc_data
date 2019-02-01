@@ -84,6 +84,15 @@ var datasetDict = {
             "count":"Neighborhood Count",
             "datename":"year",
         },        
+    "nta_acs_edu":
+        {
+            "groupby_cat":"variable",
+            "groupby_count":["a.ntacode","b.ntaname"],	
+            "first_cat":"regular_high_school_diploma",
+            "name":"ACS Education",
+            "count":"Neighborhood Count",
+            "datename":"year",
+        },        
     }
 
 var allNTA={"Airport": "QN98",
