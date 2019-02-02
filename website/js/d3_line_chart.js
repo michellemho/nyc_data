@@ -91,8 +91,10 @@ allNTA_rev = swap(allNTA)
   
     if (selectedNTAs.length == 0 || (selectedNTAs.length == 1 && selectedNTAs[0] == 'NYC')){
       selectedNTAs = Object.values(allNTA)
+      d3v3.select("#legend").remove()
     } else if (selectedNTAs.length > 1 && selectedNTAs[0] == 'NYC'){
       selectedNTAs = selectedNTAs.slice(1)
+      d3v3.select('#legendContainer').append('svg').attr("id","legend")
     }
     // Get the initial data
     if (dataset.includes('acs')){ // Use for ACS data
