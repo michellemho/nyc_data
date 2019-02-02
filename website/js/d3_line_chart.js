@@ -91,6 +91,8 @@ allNTA_rev = swap(allNTA)
   
     if (selectedNTAs.length == 0 || (selectedNTAs.length == 1 && selectedNTAs[0] == 'NYC')){
       selectedNTAs = Object.values(allNTA)
+    } else if (selectedNTAs.length > 1 && selectedNTAs[0] == 'NYC'){
+      selectedNTAs = selectedNTAs.slice(1)
     }
     // Get the initial data
     if (dataset.includes('acs')){ // Use for ACS data
