@@ -47,9 +47,7 @@ $ntaDropdown.dropdown('setting', 'onChange',function(){updateTable()});
 function updateTable(){
   	dataset = $("#datasetDropdown").dropdown("get value") 	
     ntaList = $("#neighborhoodDropdown").dropdown("get value") 
-	if (dataset.includes('acs')){
-		return
-	}
+
     conditional=''
 	$.each(ntaList,function(k,v){
 		conditional = conditional + ` a.ntacode ='${v}' or`
@@ -59,12 +57,19 @@ function updateTable(){
     groupby_cat = datasetDict[dataset]['groupby_cat']	
 //   sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT ${datasetDict[dataset]['groupby_count']},count(*),count(*)/b.population_2016 as perpop,  (*)/c.nta_count as per_nta FROM "wxu-carto".${dataset} as a, (select ntacode, count(*) as nta_count from "wxu-carto".${dataset} group by ntacade) as c,"wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by b.population_2016 , ${datasetDict[dataset]['groupby_count']}`
   //sql = `https://wxu-carto.carto.com/api/v2/sql?q=select a.*, to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') type_percentage, b.count_nta from (SELECT a.ntacode,b.ntaname, a.${groupby_cat},count(*) count_per_type ,to_char( count(*)/b.population_2016*100,'999D99%25') as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']} order by ntaname,${datasetDict[dataset]['groupby_cat']}) as a,(SELECT a.ntacode,b.ntaname,count(*) count_nta,count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname) as b where a.ntacode = b.ntacode and (${conditional} )`
-   sql = `https://wxu-carto.carto.com/api/v2/sql?q=select a.*, to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') type_percentage, b.count_nta from (select * from (select a.*, rank() OVER (PARTITION BY ntacode ORDER BY count_per_type DESC ) as rank from (SELECT a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']}, count(*) count_per_type, to_char( count(*)/b.population_2016*100,'999D99%25') as perpop FROM  "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016, a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']} order by ntaname,${datasetDict[dataset]['groupby_cat']}) as a ) as t where t.rank<=5 )as a,(SELECT a.ntacode,b.ntaname,count(*) count_nta,count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname) as b where a.ntacode = b.ntacode and (${conditional} )`
-    console.log('Chart Query', sql); 
+   var sql = `https://wxu-carto.carto.com/api/v2/sql?q=select a.*, to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') type_percentage, b.count_nta from (select * from (select a.*, rank() OVER (PARTITION BY ntacode ORDER BY count_per_type DESC ) as rank from (SELECT a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']}, count(*) count_per_type, to_char( count(*)/b.population_2016*100,'999D99%25') as perpop FROM  "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016, a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']} order by ntaname,${datasetDict[dataset]['groupby_cat']}) as a ) as t where t.rank<=5 )as a,(SELECT a.ntacode,b.ntaname,count(*) count_nta,count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname) as b where a.ntacode = b.ntacode and (${conditional} )`
+   if (dataset.includes('acs')){
+	sql = `SELECT a.*, b.ntaname FROM ${dataset} as a, nynta4326 as b WHERE b.ntacode = a.ntacode AND (${conditional} )`
+	// FOR NOW just remove the table...
+	// TO DO: add the ACS data table 
+	$('#table-container').html("")
+	return
+   }  
+   console.log('Chart Query', sql); 
 	list = {}
 	$.getJSON(sql,function(data){
 		  d = data['rows']
-		  console.log('the data!')
+		//   console.log('the data!')
   	  	vallist = {}
       
         $.each(d[0],function(j,k){
