@@ -40,7 +40,6 @@ updateTable()
 
 
 $datasetDropdown.dropdown('setting','onChange',function(){updateTable()});
-    //datasetDropdown.dropdown('setting','onChange',function(){
 $ntaDropdown.dropdown('setting', 'onChange',function(){updateTable()});
 
 
@@ -53,11 +52,19 @@ function updateTable(){
 		conditional = conditional + ` a.ntacode ='${v}' or`
 	})
 	  conditional = conditional.slice(0,-3)
-	//   console.log(conditional)
-    groupby_cat = datasetDict[dataset]['groupby_cat']	
-//   sql= `https://wxu-carto.carto.com/api/v2/sql?q=SELECT ${datasetDict[dataset]['groupby_count']},count(*),count(*)/b.population_2016 as perpop,  (*)/c.nta_count as per_nta FROM "wxu-carto".${dataset} as a, (select ntacode, count(*) as nta_count from "wxu-carto".${dataset} group by ntacade) as c,"wxu-carto".nynta_4326 as b where ( ${conditional} ) and a.ntacode = b.ntacode group by b.population_2016 , ${datasetDict[dataset]['groupby_count']}`
-  //sql = `https://wxu-carto.carto.com/api/v2/sql?q=select a.*, to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') type_percentage, b.count_nta from (SELECT a.ntacode,b.ntaname, a.${groupby_cat},count(*) count_per_type ,to_char( count(*)/b.population_2016*100,'999D99%25') as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']} order by ntaname,${datasetDict[dataset]['groupby_cat']}) as a,(SELECT a.ntacode,b.ntaname,count(*) count_nta,count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname) as b where a.ntacode = b.ntacode and (${conditional} )`
-   var sql = `https://wxu-carto.carto.com/api/v2/sql?q=select a.*, to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') type_percentage, b.count_nta from (select * from (select a.*, rank() OVER (PARTITION BY ntacode ORDER BY count_per_type DESC ) as rank from (SELECT a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']}, count(*) count_per_type, to_char( count(*)/b.population_2016*100,'999D99%25') as perpop FROM  "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016, a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']} order by ntaname,${datasetDict[dataset]['groupby_cat']}) as a ) as t where t.rank<=5 )as a,(SELECT a.ntacode,b.ntaname,count(*) count_nta,count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname) as b where a.ntacode = b.ntacode and (${conditional} )`
+
+   groupby_cat = datasetDict[dataset]['groupby_cat']	
+   // var nyc_sql = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.primary_vacate_reason, count(*) count_per_type, sum(count(*)) over () as totals,to_char(cast(count(*) as decimal)/sum(count(*)) over () *100,'999D99%25') type_percentage, to_char(cast(count(*) as decimal)/13664290 *100,'999D99%25') perpop, rank() OVER (ORDER BY count(*) DESC ) as rank,13664290 as count_nta FROM "wxu-carto".${dataset} as a group by a.${datasetDict[dataset]['groupby_cat']}`
+   var sql = `https://wxu-carto.carto.com/api/v2/sql?q=select a.ntaname::text,a.${datasetDict[dataset]['groupby_cat']}::text,a.count_per_type::int,a.perpop::text,a.rank::int, to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') type_percentage, b.count_nta from (select * from (select a.*, rank() OVER (PARTITION BY ntacode ORDER BY count_per_type DESC ) as rank from (SELECT a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']}, count(*) count_per_type, to_char( count(*)/b.population_2016*100,'999D99%25') as perpop FROM  "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016, a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']} order by ntaname,${datasetDict[dataset]['groupby_cat']}) as a ) as t where t.rank<=5 )as a,(SELECT a.ntacode,b.ntaname,count(*) count_nta,count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname) as b where a.ntacode = b.ntacode and (${conditional} )`
+   
+
+   if (ntaList.includes('NYC')){
+   	console.log('true')
+   	sql = sql + ` union select * from (SELECT  'Entire New York City' as ntaname,a.${datasetDict[dataset]['groupby_cat']},count(*) count_per_type, to_char(cast(count(*) as decimal)/13664290 *100,'999D99%25') perpop, rank() OVER (ORDER BY count(*) DESC ) as rank,to_char(cast(count(*) as decimal)/sum(count(*)) over () *100,'999D99%25') type_percentage, 13664290 as count_nta FROM  "wxu-carto".${dataset}  as a group by a.${datasetDict[dataset]['groupby_cat']}) as a where a.rank <=5 order by ntaname, rank`
+   	console.log(sql)
+   }
+   
+
    if (dataset.includes('acs')){
 	sql = `SELECT a.*, b.ntaname FROM ${dataset} as a, nynta4326 as b WHERE b.ntacode = a.ntacode AND (${conditional} )`
 	// FOR NOW just remove the table...
@@ -65,16 +72,14 @@ function updateTable(){
 	$('#table-container').html("")
 	return
    }  
-   console.log('Chart Query', sql); 
+   // console.log('Chart Query', sql); 
 	list = {}
 	$.getJSON(sql,function(data){
 		  d = data['rows']
-		//   console.log('the data!')
   	  	vallist = {}
       
         $.each(d[0],function(j,k){
   			vallist[j] = []
-	  			// console.log("val list creation",vallist[j] )
 				})
 		
 			dict_keys = Object.keys(d[0])
@@ -83,19 +88,15 @@ function updateTable(){
 			$.each( d, function( i, row ) {
 				
 				// for each of the columns, push the elemtn 
-				// console.log(row);
 				$.map(row,function(val,i){
 					vallist[i].push(val)
-					// console.log(val,i);
 				})
 
 			})
 			maxCols = 25
 			vallist = $.each(vallist,function(key,val){
 				vallist[key] = val.slice(0,maxCols)
-				// console.log(vallist[key])
 			})
-			// vallist =vallist.slice(0,3)
 
 			let header = '<thead><th></th>'
             // Make the header span the number of columns that exists for that
@@ -110,9 +111,6 @@ function updateTable(){
             })
 
             $.each(len_nta, function(k, v){
-			    //len_nta = $.grep(vallist['ntaname'],function(n,i){
-                //if( n ==value)
-                //return n}).length
                 header += `<th colspan="${v}">${k}</th>`
 			})
 			header += '</thead>'
