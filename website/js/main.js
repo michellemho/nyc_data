@@ -66,10 +66,63 @@ function updateTable(){
    
 
    if (dataset.includes('acs')){
-	sql = `SELECT a.*, b.ntaname FROM ${dataset} as a, nynta4326 as b WHERE b.ntacode = a.ntacode AND (${conditional} )`
-	// FOR NOW just remove the table...
-	// TO DO: add the ACS data table 
-	$('#table-container').html("")
+		  // special double single quote for conditional
+			conditional=''
+			$.each(ntaList,function(k,v){
+				conditional = conditional + ` a.ntacode =''${v}'' or`
+			})
+				conditional = conditional.slice(0,-3)
+			inner_sql = `SELECT a.variable as "Variable", b.ntaname, value FROM ${dataset} as a, nynta_4326 as b WHERE b.ntacode = a.ntacode AND (${conditional} ) AND year = 2016`
+			
+			if (ntaList.includes('NYC')){
+				console.log('Entire NYC...')
+				inner_sql = inner_sql + ` union (SELECT variable, ''Entire NYC'' as ntaname, sum(value) as value FROM ${dataset} WHERE year = 2016 GROUP BY variable)`
+			}
+
+			inner_sql = inner_sql + ` order by 1, 2`
+			nta_column_names = []
+			$.each(ntaList, function(k,v){
+				nta_column_names.push(reverse_nta_name_lookup[v])
+			})
+			nta_column_names = nta_column_names.sort()
+			final_cols = ''
+			$.each(nta_column_names, function(k,v){
+				final_cols = final_cols + `"${v}" NUMERIC, `
+			})
+			final_cols = final_cols.slice(0,-2)
+
+			cross_tab_sql = `SELECT * FROM crosstab ('${inner_sql}') AS final_result("Variable" TEXT, ${final_cols})`
+			cross_tab_sql = `https://wxu-carto.carto.com/api/v2/sql?q=` + cross_tab_sql
+	
+	console.log('ACS data for table: ', cross_tab_sql)
+	// Add special ACS data table
+	$.getJSON(cross_tab_sql,function(data){
+		my_data = data['rows']
+		vallist = {}
+		// grab the column headers the first row
+
+		let header = '<thead>'
+		console.log(my_data[0])
+		$.each(my_data[0], function(k, v){
+			header += `<th>${k}</th>`
+	})
+	header += '</thead>'
+	
+	let body = '<tbody>'
+	$.each(my_data, function(i, row) {
+		let tr = `<tr>`
+		$.each(row, function(k, v){
+			tr += `<td>${v}</td>`
+		})
+		tr += `</tr>`
+		body += tr
+	})
+	body += `</body>`
+	
+	
+	var table = '<table class="ui selectable celled table">' + header + body + '</table>'
+	$('#table-container').html(table)
+	})
 	return
    }  
    // console.log('Chart Query', sql); 
