@@ -3,6 +3,7 @@ var datasetDict = {
         {
             "groupby_count":["a.ntacode","b.ntaname"],	
             "groupby_cat":"primary_vacate_reason",
+            "rename": "primary vacate reason",
             "first_cat":"Total",
             "datename":"vacate_effective_date",
             "name":'Order to Repair or Vacate',
@@ -12,6 +13,7 @@ var datasetDict = {
     "threeoneone_2010_2018":
         {
             "groupby_cat":"complaint_type",
+            "rename": "complaint type",
             "first_cat":"Total",
             "name":"311 Complaints",
             "count":"Neighborhood Count",
@@ -29,6 +31,7 @@ var datasetDict = {
     "liquor_licences_withnta":
         {
             "groupby_cat":"license_ty",
+            "rename": "license type",
             "groupby_count":["a.ntacode","b.ntaname"],	
             "first_cat":"Total",
             "name":"Liquor Licenses",
@@ -38,6 +41,7 @@ var datasetDict = {
     "geocode_health_inspections":
         {
             "groupby_cat":"cuisine_description",
+            "rename": "cuisine type",
             "groupby_count":["a.ntacode","b.ntaname"],	
             "first_cat":"Total",
             "name":"Restaurant Health Inspections (2017)",
@@ -47,6 +51,7 @@ var datasetDict = {
     "nyc_dog_licensing_dataset":
         {
             "groupby_cat":"breedname",
+            "rename": "breed name",
             "groupby_count":["a.ntacode","b.ntaname"],	
             "first_cat":"Total",
             "name":"Dog Licenses (2017)",
@@ -492,6 +497,8 @@ var reverse_nta_name_lookup = {
     "SI99":"park-cemetery-etc-Staten Island"}
 
 colorbrewer={'Paired':{9: ["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6"]}}
+
+// var ntaList = $("#neighborhoodDropdown").dropdown("get value") 
 
 var acs_table_sql=```
 SELECT * from nta_acs_demo as a
