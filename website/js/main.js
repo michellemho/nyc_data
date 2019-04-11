@@ -35,17 +35,15 @@ $.each( datasetDict, function( key, val ) {
 		})
 
 $("#datasetDropdown").dropdown('set selected', 'threeoneone_2010_2018')
-$("#neighborhoodDropdown").dropdown('set selected', [''])
-updateTable()
+// $("#neighborhoodDropdown").dropdown('set selected', ['NYC'])
 
-
-$datasetDropdown.dropdown('setting','onChange',function(){updateTable()});
-$ntaDropdown.dropdown('setting', 'onChange',function(){updateTable()});
-
-
+// $datasetDropdown.dropdown('setting','onChange',function(){updateTable()});
+// $ntaDropdown.dropdown('setting', 'onChange',function(){updateTable()});
+$("#datasetDropdown,#neighborhoodDropdown").change(updateTable);
+updateTable();
 function updateTable(){
   	dataset = $("#datasetDropdown").dropdown("get value") 	
-    ntaList = $("#neighborhoodDropdown").dropdown("get value") 
+    var ntaList = $("#neighborhoodDropdown").dropdown("get value") 
 
     conditional=''
 	$.each(ntaList,function(k,v){
@@ -55,7 +53,7 @@ function updateTable(){
 
    groupby_cat = datasetDict[dataset]['groupby_cat']	
    // var nyc_sql = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.primary_vacate_reason, count(*) count_per_type, sum(count(*)) over () as totals,to_char(cast(count(*) as decimal)/sum(count(*)) over () *100,'999D99%25') type_percentage, to_char(cast(count(*) as decimal)/13664290 *100,'999D99%25') perpop, rank() OVER (ORDER BY count(*) DESC ) as rank,13664290 as count_nta FROM "wxu-carto".${dataset} as a group by a.${datasetDict[dataset]['groupby_cat']}`
-   var sql = `https://wxu-carto.carto.com/api/v2/sql?q=select a.ntaname::text,a.${datasetDict[dataset]['groupby_cat']}::text,a.count_per_type::int,a.perpop::text,a.rank::int, to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') type_percentage, b.count_nta from (select * from (select a.*, rank() OVER (PARTITION BY ntacode ORDER BY count_per_type DESC ) as rank from (SELECT a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']}, count(*) count_per_type, to_char( count(*)/b.population_2016*100,'999D99%25') as perpop FROM  "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016, a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']} order by ntaname,${datasetDict[dataset]['groupby_cat']}) as a ) as t where t.rank<=5 )as a,(SELECT a.ntacode,b.ntaname,count(*) count_nta,count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname) as b where a.ntacode = b.ntacode and (${conditional} )`
+   var sql = `https://wxu-carto.carto.com/api/v2/sql?q=select a.ntaname::text,a.${datasetDict[dataset]['groupby_cat']}::text as "${datasetDict[dataset]['rename']}",a.count_per_type::int as "count per type",a.perpop::text as "per capita",a.rank::int, to_char(cast(a.count_per_type as decimal)/b.count_nta*100,'999D99%25') as "type percent of total", b.count_nta as "total count in NTA" from (select * from (select a.*, rank() OVER (PARTITION BY ntacode ORDER BY count_per_type DESC ) as rank from (SELECT a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']}, count(*) count_per_type, to_char( count(*)/b.population_2016*100,'999D99%25') as perpop FROM  "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016, a.ntacode,b.ntaname, a.${datasetDict[dataset]['groupby_cat']} order by ntaname,${datasetDict[dataset]['groupby_cat']}) as a ) as t where t.rank<=5 )as a,(SELECT a.ntacode,b.ntaname,count(*) count_nta,count(*)/b.population_2016 as perpop  FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode group by b.population_2016 , a.ntacode,b.ntaname) as b where a.ntacode = b.ntacode and (${conditional} )`
    
 
    if (ntaList.includes('NYC')){
