@@ -8,12 +8,25 @@
     src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
     <style>
 
-        .bar {
-        fill: steelblue;
+        /* .bar {
+        fill: rgb(37, 122, 192);
+        } */
+        div.tooltip {
+        position: absolute;
+        display:inline-block;
+        text-align: center;
+        /* width: 60px;
+        height: 28px; */
+        padding: 2px;
+        font: 12px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
         }
-    
+
         .bar:hover {
-        fill: brown;
+        fill: rgb(211, 128, 128);
         }
     
         .label {
@@ -36,11 +49,15 @@
     <select id="inds">
             <!-- populate dropdown by variables -->    
     </select>
+    <!-- <div id='bubble-label'>
+        <div id='nta-label-container'></div>
+        <div id='nta-stats'></div>
+    </div> -->
     <div id='chart-container'></div>
 </body>
 
 <script>
-    var selectedNTAs = ['MN27', 'MN11', 'MN20']
+    var selectedNTAs = ["BK33", "MN11", "MN20"]
     var margin = {
         top: 20,
         right: 20,
@@ -55,7 +72,10 @@
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
+   // define div for the tooltips
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
     // set up an x scaleBand and y linear scale, fill in domain later with data
     var  x = d3.scaleBand()
         .range([0, width]);
@@ -85,6 +105,8 @@
            
     var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 
+    var totalPop = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
+
     d3.select('#inds')
 	  .on("change", function () {
         var sect = document.getElementById("inds");
@@ -97,7 +119,17 @@
         
         var sqlApiQuery = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}/${denominator}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
 
-        d3.json(sqlApiQuery, function(error, data){
+        var totalPop = `https://wxu-carto.carto.com/api/v2/sql?q=SELECT a.${selectedVar}::float as var, a.ntacode, b.ntaname FROM "wxu-carto".${dataset} as a, "wxu-carto".nynta_4326 as b where a.ntacode = b.ntacode`
+        
+        if (selectedVar === 'total_population'){
+            query = totalPop
+            unit = 'people'
+        }
+        else{
+            query = sqlApiQuery
+            unit = '%'
+        }
+        d3.json(query, function(error, data){
             // debugger
             data = data.rows
             // make sure values are numeric
@@ -113,8 +145,9 @@
         // Add in domain for y linear scale
         y.domain([0,d3.max(data, function(d) { return d.var; })])
         
-        // map data vars to the domain of the x scaleBand           
-        x.domain(data.map(x => x.var))
+        // map data vars to the domain of the x scaleBand    
+        // console.log(data.length)       
+        x.domain(data.map((x, i) => i))
         x.paddingInner(0.05);
 
         console.log('bandwidth: ', x.bandwidth())
@@ -126,25 +159,52 @@
         selection.enter()
                 .append('rect')
                 .attr("class", "bar")
+                // .attr("class", function(d,i){return 'bar '+i})
                 .attr('x', function(d, i){
-                    return x(d.var)
+                    // fixed in case of duplicate d.var
+                    return x(i)
                 })
                 .attr('width', x.bandwidth())
-                .attr('fill', '#d1c9b8')
                 .merge(selection) // merge new elements with existing ones, so everything below applies to all
                 .attr('height', function(d){
                     return height - y(d.var);
                 })
+                .attr('fill', function(d,i){ return (selectedNTAs.includes(d.ntacode) ? "magenta" : "steelblue"); })
                 .attr('y', function(d){return y(d.var)})
+                .on("mouseover", function(d, i) {
+                    var xPosition = parseFloat(d3.select(this).attr("x"));
+					var yPosition = parseFloat(d3.select(this).attr("y"));
+
+                    div.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    div.html(d.ntaname + "<br/>" + d.var.toFixed(2))
+                        .style("left", xPosition + "px")
+                        .style("top", yPosition + "px");
+                    })
+                .on("mouseout", function(d) {
+                div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                });
+
         //left axis
         svg.select('.y.axis')
+            .call(yAxis)
+        // grid
+        svg.select('g')
+            .attr('class', 'grid')
             .call(yAxis)
 
         // remove any unused bars
         selection.exit()
         .remove();
+        // remove any unused labelss
+        labels.exit()
+        .remove();
         })
         
     };
-
+// initial chart draw
+drawChart(sqlApiQuery, 'total_population')
 </script>

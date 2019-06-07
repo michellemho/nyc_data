@@ -1,0 +1,35 @@
+
+/* .bar {
+fill: rgb(37, 122, 192);
+} */
+
+.bar:hover {
+fill: rgb(211, 128, 128);
+}
+
+.label {
+fill: black;
+font: 10px sans-serif;
+}
+
+.y path, .y stroke, .y line {
+display: none;
+}
+
+.x path, .x stroke {
+display: none;
+}
+
+div.tooltip {
+    position: absolute;
+    display:inline-block;
+    text-align: center;
+    /* width: 60px;
+    height: 28px; */
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+    }
